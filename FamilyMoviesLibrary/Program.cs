@@ -1,3 +1,6 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
-Console.WriteLine("Hello, World!");
+using FamilyMoviesLibrary.Services;
+
+ApplicationManage app = new ApplicationManage();
+await app.Start();
