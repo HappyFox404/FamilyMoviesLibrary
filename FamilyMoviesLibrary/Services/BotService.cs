@@ -5,16 +5,15 @@ using Telegram.Bot.Types.Enums;
 
 namespace FamilyMoviesLibrary.Services;
 
-public class InterfaceBot
+public class BotService
 {
     private readonly TelegramBotClient _client;
     public delegate void WaitAction();
-
-    private readonly WaitAction _action;
+    private readonly WaitAction _waitingAction;
     
-    public InterfaceBot(string token, WaitAction action)
+    public BotService(string token, WaitAction waitingAction)
     {
-        _action = action;
+        _waitingAction = waitingAction;
         _client = new TelegramBotClient(token);
     }
 
@@ -30,11 +29,10 @@ public class InterfaceBot
                 AllowedUpdates = Array.Empty<UpdateType>()
             },
             cancellationToken: cts.Token);
-        var me = await _client.GetMeAsync();
+
+        await _client.GetMeAsync();
         
-        Console.WriteLine($"Start listening for @{me.Username}");
-        
-        _action?.Invoke();
+        _waitingAction?.Invoke();
         
         cts.Cancel();
     }

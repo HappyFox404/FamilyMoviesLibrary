@@ -2,7 +2,7 @@ using Microsoft.Extensions.Configuration;
 
 namespace FamilyMoviesLibrary.Services;
 
-public static class Settings
+public static class SettingsService
 {
     public static IConfigurationRoot Configuration {
         get
