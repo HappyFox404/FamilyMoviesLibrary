@@ -19,6 +19,7 @@ public class Application
     public Application()
     {
         SettingsService.Initialization();
+        AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
         Instance = this;
     }
 

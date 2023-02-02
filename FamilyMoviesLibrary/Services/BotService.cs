@@ -1,3 +1,6 @@
+using FamilyMoviesLibrary.ApplicationCommands;
+using FamilyMoviesLibrary.BotCommands;
+using FamilyMoviesLibrary.Interfaces;
 using Telegram.Bot;
 using Telegram.Bot.Exceptions;
 using Telegram.Bot.Types;
@@ -10,6 +13,13 @@ public class BotService
     private readonly TelegramBotClient _client;
     public delegate void WaitAction();
     private readonly WaitAction _waitingAction;
+    
+    private readonly IEnumerable<IBotCommand> _commands = new List<IBotCommand>()
+    {
+        new HelpBotCommand()
+    };
+
+    private readonly IBotCommand _defaultCommand = new DefaultBotCommand();
     
     public BotService(string token, WaitAction waitingAction)
     {
@@ -39,21 +49,14 @@ public class BotService
     
     async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
     {
-        if (update.Message is not { } message)
-            return;
-        // Только текстовые сообщения
-        if (message.Text is not { } messageText)
-            return;
-
-        var chatId = message.Chat.Id;
-
-        Console.WriteLine($"Received a '{messageText}' message in chat {chatId}.");
-
-        // Echo received message text
-        Message sentMessage = await botClient.SendTextMessageAsync(
-            chatId: chatId,
-            text: "You said:\n" + messageText,
-            cancellationToken: cancellationToken);
+        if (update.Type == UpdateType.Message
+            || update.Type == UpdateType.CallbackQuery)
+        {
+            if (update.Message?.Text != default)
+                await ListenCommands(update.Message?.Text, update, cancellationToken);
+            else if(update.CallbackQuery?.Data != default)
+                await ListenCommands(update.CallbackQuery?.Data, update, cancellationToken);
+        }
     }
 
     Task HandlePollingErrorAsync(ITelegramBotClient botClient, Exception exception, CancellationToken cancellationToken)
@@ -67,5 +70,37 @@ public class BotService
 
         Console.WriteLine(ErrorMessage);
         return Task.CompletedTask;
+    }
+    
+    private async Task ListenCommands(string sendCommand, Update update, CancellationToken cancellationToken)
+    {
+        try
+        {
+            if (String.IsNullOrWhiteSpace(sendCommand) == false)
+            {
+                bool foundCommand = false;
+                foreach (var command in _commands)
+                {
+                    if (command.IsNeedCommand(sendCommand))
+                    {
+                        foundCommand = true;
+                        await command.ExecuteCommand(sendCommand, _client, update, cancellationToken);
+                        break;
+                    }
+                }
+                if (!foundCommand)
+                {
+                    await _defaultCommand.ExecuteCommand(sendCommand, _client, update, cancellationToken);
+                }
+            }
+            else
+            {
+                await _defaultCommand?.ExecuteCommand("", _client, update, cancellationToken)!;
+            }
+        }
+        catch (Exception exception)
+        {
+            Console.WriteLine($"Во время обработки запроса, произошла ошибка: {exception}");
+        }
     }
 }
