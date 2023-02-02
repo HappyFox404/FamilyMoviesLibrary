@@ -1,5 +1,9 @@
-﻿using FamilyMoviesLibrary.Interfaces;
+﻿using FamilyMoviesLibrary.Context;
+using FamilyMoviesLibrary.Helpers;
+using FamilyMoviesLibrary.Interfaces;
+using FamilyMoviesLibrary.Services;
 using FamilyMoviesLibrary.Services.Helpers;
+using Microsoft.EntityFrameworkCore;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.ReplyMarkups;
@@ -33,27 +37,54 @@ public class GroupCommand : IBotCommand
     
     private async Task GenerateBaseResponse(TelegramBotClient client, Update update, CancellationToken cancellationToken)
     {
-        InlineKeyboardMarkup inlineKeyboard = new(new[]
+        ChatId? chatId = TelegramHelper.GetChatId(update);
+        User? user = TelegramHelper.GetUser(update);
+
+        using (FamilyMoviesLibraryContext context =
+               FamilyMoviesLibraryContext.CreateContext(SettingsService.GetDefaultConnectionString()))
         {
-            new []
+            if (chatId != default && user != default)
             {
-                InlineKeyboardButton.WithCallbackData(text: "Помощь", callbackData: "/help"),
-                InlineKeyboardButton.WithCallbackData(text: "Группа", callbackData: "/group"),
+                if (context.Users.Any(x => x.TelegramId == user.Id) == false)
+                {
+                    await DatabaseHelper.CreateUser(user.Id);
+                }
+
+                var userData = context.Users.Include(x => x.Group).FirstOrDefault(x => x.TelegramId == user.Id);
+                InlineKeyboardMarkup inlineKeyboard;
+                if (userData.Group != default)
+                {
+                    inlineKeyboard = new(new[]
+                    {
+                        new[]
+                        {
+                            InlineKeyboardButton.WithCallbackData(text: "Выйти из группы",
+                                callbackData: $"/group-exit -u:{userData.Id} -g:{userData.Group.Id}"),
+                            InlineKeyboardButton.WithCallbackData(text: "Участники",
+                                callbackData: $"/group-users -g:{userData.Group.Id}")
+                        }
+                    });
+                }
+                else
+                {
+                    inlineKeyboard = new(new[]
+                    {
+                        new[]
+                        {
+                            InlineKeyboardButton.WithCallbackData(text: "Создать группу",
+                                callbackData: $"/group-create"),
+                            InlineKeyboardButton.WithCallbackData(text: "Найти группу",
+                                callbackData: $"/group-search"),
+                        }
+                    });
+                }
+                await client.SendTextMessageAsync(
+                    chatId: chatId,
+                    text: "Вот что я могу Вам предложить:",
+                    replyMarkup: inlineKeyboard,
+                    cancellationToken: cancellationToken);
+                
             }
-        });
-        
-        ChatId chatId;
-        if (update.Message != default)
-            chatId = update.Message.Chat.Id;
-        else if (update.CallbackQuery != default && update.CallbackQuery.Message != default)
-            chatId = update.CallbackQuery.Message.Chat.Id;
-        else
-            throw new ArgumentException("Не получилось получить ChatId");
-            
-        Message sendMessage = await client.SendTextMessageAsync(
-            chatId: chatId,
-            text: "Список доступных команд:",
-            replyMarkup: inlineKeyboard,
-            cancellationToken: cancellationToken);
+        }
     }
 }

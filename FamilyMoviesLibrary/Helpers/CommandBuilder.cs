@@ -85,4 +85,18 @@ public class CommandBuilder
             }
         }
     }
+
+    public string? GetArgumentValue(string argument)
+    {
+        foreach (var arg in Arguments)
+        {
+            if (arg.Contains($"-{argument}:"))
+            {
+                var value = arg.Replace($"-{argument}:", "");
+                return value;
+            }
+        }
+
+        return null;
+    }
 }

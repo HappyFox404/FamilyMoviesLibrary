@@ -55,8 +55,8 @@ namespace FamilyMoviesLibrary.Context.Migrations
                     b.Property<Guid?>("GroupId")
                         .HasColumnType("uuid");
 
-                    b.Property<Guid>("TelegramId")
-                        .HasColumnType("uuid");
+                    b.Property<long>("TelegramId")
+                        .HasColumnType("bigint");
 
                     b.HasKey("Id");
 

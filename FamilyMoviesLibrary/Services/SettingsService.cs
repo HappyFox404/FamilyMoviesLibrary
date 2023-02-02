@@ -24,6 +24,14 @@ public static class SettingsService
     {
         return _configurationRoot[$"ConnectionStrings:{connectionName}"];
     }
+    
+    public static string GetDefaultConnectionString()
+    {
+        var connection = _configurationRoot["ConnectionStrings:DefaultConnection"];
+        if (connection != default)
+            return connection;
+        throw new NullReferenceException("Не указана строка подключения по умолчанию");
+    }
 
     public static string? GetBotToken()
     {

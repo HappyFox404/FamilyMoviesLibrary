@@ -16,7 +16,7 @@ public class BotService
     
     private readonly IEnumerable<IBotCommand> _commands = new List<IBotCommand>()
     {
-        new HelpBotCommand()
+        new HelpBotCommand(), new GroupCommand(), new GroupCreateCommand()
     };
 
     private readonly IBotCommand _defaultCommand = new DefaultBotCommand();
@@ -74,6 +74,7 @@ public class BotService
     
     private async Task ListenCommands(string sendCommand, Update update, CancellationToken cancellationToken)
     {
+        //Кароче нужна обработка предыдущих сообщений
         try
         {
             if (String.IsNullOrWhiteSpace(sendCommand) == false)

@@ -23,19 +23,16 @@ public class DefaultBotCommand : IBotCommand
                 new [] { InlineKeyboardButton.WithCallbackData(text: "Помощь", callbackData: "/help") }
             });
             
-            ChatId chatId;
-            if (update.Message != default)
-                chatId = update.Message.Chat.Id;
-            else if (update.CallbackQuery != default && update.CallbackQuery.Message != default)
-                chatId = update.CallbackQuery.Message.Chat.Id;
-            else
-                throw new ArgumentException("Не получилось получить ChatId");
-            
-            Message sendMessage = await client.SendTextMessageAsync(
-                chatId: chatId,
-                text: "Я не понимаю, что вы хотите. Список доступных комманд вы можете узнать при помощи /help",
-                replyMarkup: inlineKeyboard,
-                cancellationToken: cancellationToken);
+            ChatId? chatId = TelegramHelper.GetChatId(update);
+
+            if (chatId != default)
+            {
+                Message sendMessage = await client.SendTextMessageAsync(
+                    chatId: chatId,
+                    text: "Я не понимаю, что вы хотите. Список доступных комманд вы можете узнать при помощи /help",
+                    replyMarkup: inlineKeyboard,
+                    cancellationToken: cancellationToken);
+            }
         }
     }
 }

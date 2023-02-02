@@ -29,7 +29,7 @@ namespace FamilyMoviesLibrary.Context.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    TelegramId = table.Column<Guid>(type: "uuid", nullable: false),
+                    TelegramId = table.Column<long>(type: "bigint", nullable: false),
                     GroupId = table.Column<Guid>(type: "uuid", nullable: true),
                     DateCreated = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },

@@ -33,19 +33,16 @@ public class HelpBotCommand : IBotCommand
                 }
             });
 
-            ChatId chatId;
-            if (update.Message != default)
-                chatId = update.Message.Chat.Id;
-            else if (update.CallbackQuery != default && update.CallbackQuery.Message != default)
-                chatId = update.CallbackQuery.Message.Chat.Id;
-            else
-                throw new ArgumentException("Не получилось получить ChatId");
-            
-            Message sendMessage = await client.SendTextMessageAsync(
-                chatId: chatId,
-                text: "Список доступных команд:",
-                replyMarkup: inlineKeyboard,
-                cancellationToken: cancellationToken);
+            ChatId chatId = TelegramHelper.GetChatId(update);
+
+            if (chatId != default)
+            {
+                Message sendMessage = await client.SendTextMessageAsync(
+                    chatId: chatId,
+                    text: "Список доступных команд:",
+                    replyMarkup: inlineKeyboard,
+                    cancellationToken: cancellationToken);
+            }
         }
     }
 }

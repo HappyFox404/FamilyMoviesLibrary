@@ -10,7 +10,7 @@ public class FamilyMoviesLibraryContext : DbContext
 
     public FamilyMoviesLibraryContext(DbContextOptions<FamilyMoviesLibraryContext> options) : base(options)
     {
-        Database.EnsureCreated();
+        //Database.EnsureCreated();
     }
 
     public static FamilyMoviesLibraryContext CreateContext(string connection)
@@ -28,10 +28,10 @@ public class FamilyMoviesLibraryContext : DbContext
         
         modelBuilder.Entity<User>().HasKey(x => x.Id);
         modelBuilder.Entity<User>().Property(x => x.TelegramId).IsRequired();
-        modelBuilder.Entity<User>()
+        /*modelBuilder.Entity<User>()
             .HasOne(x => x.Group)
             .WithMany(x => x.Users)
             .HasForeignKey(x => x.GroupId)
-            .HasPrincipalKey(x => x.Id);
+            .HasPrincipalKey(x => x.Id);*/
     }
 }
