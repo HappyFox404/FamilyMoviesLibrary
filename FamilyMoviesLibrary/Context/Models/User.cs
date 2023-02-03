@@ -7,4 +7,6 @@ public class User : BaseData
 
     public Guid? GroupId { get; set; }
     public Group? Group { get; set; }
+    
+    public Message? Message { get; set; }
 }

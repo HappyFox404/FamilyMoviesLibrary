@@ -1,6 +1,8 @@
 using FamilyMoviesLibrary.ApplicationCommands;
 using FamilyMoviesLibrary.BotCommands;
+using FamilyMoviesLibrary.Helpers;
 using FamilyMoviesLibrary.Interfaces;
+using FamilyMoviesLibrary.Services.Helpers;
 using Telegram.Bot;
 using Telegram.Bot.Exceptions;
 using Telegram.Bot.Types;
@@ -74,24 +76,39 @@ public class BotService
     
     private async Task ListenCommands(string sendCommand, Update update, CancellationToken cancellationToken)
     {
+        string resultCommand = sendCommand;
         //Кароче нужна обработка предыдущих сообщений
         try
         {
-            if (String.IsNullOrWhiteSpace(sendCommand) == false)
+            User? telegramUser = TelegramHelper.GetUser(update);
+            if (telegramUser != default)
             {
+                await DatabaseHelper.CreateUser(telegramUser.Id);
+            }
+            if (String.IsNullOrWhiteSpace(resultCommand) == false)
+            {
+                if (telegramUser != null && await DatabaseHelper.ContinueLastMessage(telegramUser.Id))
+                {
+                    string? prevCommand = await DatabaseHelper.LastMessage(telegramUser.Id);
+                    if (String.IsNullOrWhiteSpace(prevCommand) == false)
+                    {
+                        resultCommand = $"{prevCommand} \"{CommandBuilder.ContinueKey}{sendCommand}\"";
+                    }
+                }
+                
                 bool foundCommand = false;
                 foreach (var command in _commands)
                 {
-                    if (command.IsNeedCommand(sendCommand))
+                    if (command.IsNeedCommand(resultCommand))
                     {
                         foundCommand = true;
-                        await command.ExecuteCommand(sendCommand, _client, update, cancellationToken);
+                        await command.ExecuteCommand(resultCommand, _client, update, cancellationToken);
                         break;
                     }
                 }
                 if (!foundCommand)
                 {
-                    await _defaultCommand.ExecuteCommand(sendCommand, _client, update, cancellationToken);
+                    await _defaultCommand.ExecuteCommand(resultCommand, _client, update, cancellationToken);
                 }
             }
             else

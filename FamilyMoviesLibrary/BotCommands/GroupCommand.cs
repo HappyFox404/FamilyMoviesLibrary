@@ -28,38 +28,25 @@ public class GroupCommand : IBotCommand
         var buildCommand = new CommandBuilder(command);
         if (buildCommand.ValidCommand)
         {
-            if (buildCommand.Arguments.Any() == false)
-            {
-                await GenerateBaseResponse(client, update, cancellationToken);
-            }
-        }
-    }
-    
-    private async Task GenerateBaseResponse(TelegramBotClient client, Update update, CancellationToken cancellationToken)
-    {
-        ChatId? chatId = TelegramHelper.GetChatId(update);
-        User? user = TelegramHelper.GetUser(update);
+            ChatId? chatId = TelegramHelper.GetChatId(update);
+            User? user = TelegramHelper.GetUser(update);
+            
+            if (user == default)
+                return;
 
-        using (FamilyMoviesLibraryContext context =
-               FamilyMoviesLibraryContext.CreateContext(SettingsService.GetDefaultConnectionString()))
-        {
-            if (chatId != default && user != default)
+            using (FamilyMoviesLibraryContext context =
+                   FamilyMoviesLibraryContext.CreateContext(SettingsService.GetDefaultConnectionString()))
             {
-                if (context.Users.Any(x => x.TelegramId == user.Id) == false)
-                {
-                    await DatabaseHelper.CreateUser(user.Id);
-                }
-
                 var userData = context.Users.Include(x => x.Group).FirstOrDefault(x => x.TelegramId == user.Id);
                 InlineKeyboardMarkup inlineKeyboard;
-                if (userData.Group != default)
+                if (userData?.Group != default)
                 {
                     inlineKeyboard = new(new[]
                     {
                         new[]
                         {
                             InlineKeyboardButton.WithCallbackData(text: "Выйти из группы",
-                                callbackData: $"/group-exit -u:{userData.Id} -g:{userData.Group.Id}"),
+                                callbackData: $"/group-exit"),
                             InlineKeyboardButton.WithCallbackData(text: "Участники",
                                 callbackData: $"/group-users -g:{userData.Group.Id}")
                         }
@@ -78,12 +65,10 @@ public class GroupCommand : IBotCommand
                         }
                     });
                 }
-                await client.SendTextMessageAsync(
-                    chatId: chatId,
-                    text: "Вот что я могу Вам предложить:",
-                    replyMarkup: inlineKeyboard,
-                    cancellationToken: cancellationToken);
-                
+                await client.SendDefaultMessage(
+                    "Вот что я могу Вам предложить:",
+                    chatId, cancellationToken, inlineKeyboard);
+                await DatabaseHelper.SetMessage(user.Id, command);
             }
         }
     }

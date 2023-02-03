@@ -1,4 +1,5 @@
-﻿using FamilyMoviesLibrary.Interfaces;
+﻿using FamilyMoviesLibrary.Helpers;
+using FamilyMoviesLibrary.Interfaces;
 using FamilyMoviesLibrary.Services.Helpers;
 using Telegram.Bot;
 using Telegram.Bot.Types;
@@ -24,6 +25,10 @@ public class HelpBotCommand : IBotCommand
     {
         if (update.Message != default || update.CallbackQuery != default)
         {
+            User? user = TelegramHelper.GetUser(update);
+            if (user == default)
+                return;
+            
             InlineKeyboardMarkup inlineKeyboard = new(new[]
             {
                 new []
@@ -34,15 +39,10 @@ public class HelpBotCommand : IBotCommand
             });
 
             ChatId chatId = TelegramHelper.GetChatId(update);
-
-            if (chatId != default)
-            {
-                Message sendMessage = await client.SendTextMessageAsync(
-                    chatId: chatId,
-                    text: "Список доступных команд:",
-                    replyMarkup: inlineKeyboard,
-                    cancellationToken: cancellationToken);
-            }
+            
+            await client.SendDefaultMessage("Список доступных команд:",
+                chatId, cancellationToken, inlineKeyboard);
+            await DatabaseHelper.SetMessage(user.Id, command);
         }
     }
 }

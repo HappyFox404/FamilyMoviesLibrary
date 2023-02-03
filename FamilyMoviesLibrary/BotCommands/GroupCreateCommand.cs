@@ -2,12 +2,14 @@ using FamilyMoviesLibrary.Context;
 using FamilyMoviesLibrary.Context.Models;
 using FamilyMoviesLibrary.Helpers;
 using FamilyMoviesLibrary.Interfaces;
+using FamilyMoviesLibrary.Models.Exception;
 using FamilyMoviesLibrary.Services;
 using FamilyMoviesLibrary.Services.Helpers;
 using Microsoft.EntityFrameworkCore;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.ReplyMarkups;
+using Message = Telegram.Bot.Types.Message;
 using User = Telegram.Bot.Types.User;
 
 namespace FamilyMoviesLibrary.BotCommands;
@@ -33,12 +35,34 @@ public class GroupCreateCommand : IBotCommand
             ChatId? chatId = TelegramHelper.GetChatId(update);
             User? user = TelegramHelper.GetUser(update);
 
-            if (chatId != default && user != default)
+            if (user == default)
+                return;
+
+            if (buildCommand.ContainsContinueKey() == false)
             {
-                Message sendMessage = await client.SendTextMessageAsync(
-                    chatId: chatId,
-                    text: "Введите название группы",
-                    cancellationToken: cancellationToken);
+                await client.SendDefaultMessage(
+                    "Введите название группы:",
+                    chatId, cancellationToken);
+                await DatabaseHelper.SetMessage(user.Id, command, true);
+            }
+            else
+            {
+                string continueArgument = buildCommand.GetContinueValue();
+                try
+                {
+                    await DatabaseHelper.CreateGroup(user.Id, continueArgument);
+                }
+                catch (ControllException exception)
+                {
+                    await client.SendDefaultMessage(
+                        exception.NormalMessage,
+                        chatId, cancellationToken);
+                    return;
+                }
+                await client.SendDefaultMessage(
+                    "Группа успешно создана. Также я Вас туда добавил",
+                    chatId, cancellationToken);
+                await DatabaseHelper.SetMessage(user.Id, command);
             }
         }
     }

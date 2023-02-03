@@ -7,6 +7,7 @@ public class FamilyMoviesLibraryContext : DbContext
 {
     public DbSet<Group> Groups { get; set; } = null!;
     public DbSet<User> Users { get; set; } = null!;
+    public DbSet<Message> Messages { get; set; } = null!;
 
     public FamilyMoviesLibraryContext(DbContextOptions<FamilyMoviesLibraryContext> options) : base(options)
     {
@@ -28,10 +29,13 @@ public class FamilyMoviesLibraryContext : DbContext
         
         modelBuilder.Entity<User>().HasKey(x => x.Id);
         modelBuilder.Entity<User>().Property(x => x.TelegramId).IsRequired();
-        /*modelBuilder.Entity<User>()
-            .HasOne(x => x.Group)
-            .WithMany(x => x.Users)
-            .HasForeignKey(x => x.GroupId)
-            .HasPrincipalKey(x => x.Id);*/
+
+        modelBuilder.Entity<Message>().HasKey(x => x.Id);
+        modelBuilder.Entity<Message>().Property(x => x.IsNeedAdditionalMessage).IsRequired();
+        modelBuilder.Entity<User>()
+            .HasOne(x => x.Message)
+            .WithOne(x => x.User)
+            .HasForeignKey<Message>(x => x.UserId)
+            .HasPrincipalKey<User>(x => x.Id);
     }
 }

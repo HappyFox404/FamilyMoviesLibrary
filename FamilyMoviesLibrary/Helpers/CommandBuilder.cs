@@ -2,12 +2,15 @@
 
 public class CommandBuilder
 {
+    public const string ContinueKey = "-c:";
+    public readonly string RawCommand;
     public string Command { get; }
     public List<string> Arguments { get; }
     public bool ValidCommand { get; }
 
     public CommandBuilder(string command)
     {
+        RawCommand = command;
         if (command.Contains("\"") == false)
         {
             var values = command.Split(" ", StringSplitOptions.RemoveEmptyEntries);
@@ -92,11 +95,32 @@ public class CommandBuilder
         {
             if (arg.Contains($"-{argument}:"))
             {
-                var value = arg.Replace($"-{argument}:", "");
-                return value;
+                return arg.Replace($"-{argument}:", "");
             }
         }
 
         return null;
+    }
+    
+    public string GetContinueValue()
+    {
+        foreach (var arg in Arguments)
+        {
+            if (arg.Contains(ContinueKey))
+            {
+                return arg.Replace(ContinueKey, "");
+            }
+        }
+        throw new ArgumentOutOfRangeException($"Не найден ключ продолжения");
+    }
+
+    public bool ContainsArgumentKey(string key)
+    {
+        return RawCommand.Contains(key);
+    }
+
+    public bool ContainsContinueKey()
+    {
+        return RawCommand.Contains(ContinueKey);
     }
 }
