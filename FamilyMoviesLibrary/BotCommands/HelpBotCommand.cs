@@ -1,5 +1,8 @@
-﻿using FamilyMoviesLibrary.Helpers;
+﻿using FamilyMoviesLibrary.Context;
+using FamilyMoviesLibrary.Helpers;
 using FamilyMoviesLibrary.Interfaces;
+using FamilyMoviesLibrary.Models;
+using FamilyMoviesLibrary.Models.Atributes;
 using FamilyMoviesLibrary.Services.Helpers;
 using Telegram.Bot;
 using Telegram.Bot.Types;
@@ -8,20 +11,15 @@ using Telegram.Bot.Types.ReplyMarkups;
 
 namespace FamilyMoviesLibrary.BotCommands;
 
+[BotCommand]
 public class HelpBotCommand : IBotCommand
 {
     public bool IsNeedCommand(string command)
     {
-        var buildCommand = new CommandBuilder(command);
-        if (buildCommand.ValidCommand && 
-            buildCommand.Command == "/help")
-        {
-            return true;
-        }
-        return false;
+        return new CommandBuilder(command).DefinationCommand(BotCommandNames.Help);
     }
 
-    public async Task ExecuteCommand(string command, TelegramBotClient client, Update update, CancellationToken cancellationToken)
+    public async Task ExecuteCommand(FamilyMoviesLibraryContext context, string command, TelegramBotClient client, Update update, CancellationToken cancellationToken)
     {
         if (update.Message != default || update.CallbackQuery != default)
         {
@@ -33,16 +31,16 @@ public class HelpBotCommand : IBotCommand
             {
                 new []
                 {
-                    InlineKeyboardButton.WithCallbackData(text: "Помощь", callbackData: "/help"),
-                    InlineKeyboardButton.WithCallbackData(text: "Группа", callbackData: "/group"),
+                    InlineKeyboardButton.WithCallbackData(text: "Помощь", callbackData: BotCommandNames.Help),
+                    InlineKeyboardButton.WithCallbackData(text: "Группа", callbackData: BotCommandNames.Group),
                 }
             });
 
             ChatId chatId = TelegramHelper.GetChatId(update);
             
+            await context.SetMessage(user.Id, command);
             await client.SendDefaultMessage("Список доступных команд:",
                 chatId, cancellationToken, inlineKeyboard);
-            await DatabaseHelper.SetMessage(user.Id, command);
         }
     }
 }

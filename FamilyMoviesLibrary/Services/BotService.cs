@@ -1,5 +1,6 @@
 using FamilyMoviesLibrary.ApplicationCommands;
 using FamilyMoviesLibrary.BotCommands;
+using FamilyMoviesLibrary.Context;
 using FamilyMoviesLibrary.Helpers;
 using FamilyMoviesLibrary.Interfaces;
 using FamilyMoviesLibrary.Services.Helpers;
@@ -15,16 +16,15 @@ public class BotService
     private readonly TelegramBotClient _client;
     public delegate void WaitAction();
     private readonly WaitAction _waitingAction;
-    
-    private readonly IEnumerable<IBotCommand> _commands = new List<IBotCommand>()
-    {
-        new HelpBotCommand(), new GroupCommand(), new GroupCreateCommand()
-    };
 
-    private readonly IBotCommand _defaultCommand = new DefaultBotCommand();
+    private readonly IEnumerable<IBotCommand> _commands;
+
+    private readonly IBotCommand _defaultCommand;
     
     public BotService(string token, WaitAction waitingAction)
     {
+        _commands = SystemHelper.GetBotCommands();
+        _defaultCommand = SystemHelper.GetBotDefaultCommand();
         _waitingAction = waitingAction;
         _client = new TelegramBotClient(token);
     }
@@ -54,6 +54,8 @@ public class BotService
         if (update.Type == UpdateType.Message
             || update.Type == UpdateType.CallbackQuery)
         {
+            
+            
             if (update.Message?.Text != default)
                 await ListenCommands(update.Message?.Text, update, cancellationToken);
             else if(update.CallbackQuery?.Data != default)
@@ -80,40 +82,43 @@ public class BotService
         //Кароче нужна обработка предыдущих сообщений
         try
         {
-            User? telegramUser = TelegramHelper.GetUser(update);
-            if (telegramUser != default)
+            using (FamilyMoviesLibraryContext context = FamilyMoviesLibraryContext.CreateContext(SettingsService.GetDefaultConnectionString()))
             {
-                await DatabaseHelper.CreateUser(telegramUser.Id);
-            }
-            if (String.IsNullOrWhiteSpace(resultCommand) == false)
-            {
-                if (telegramUser != null && await DatabaseHelper.ContinueLastMessage(telegramUser.Id))
+                User? telegramUser = TelegramHelper.GetUser(update);
+                if (telegramUser != default)
                 {
-                    string? prevCommand = await DatabaseHelper.LastMessage(telegramUser.Id);
-                    if (String.IsNullOrWhiteSpace(prevCommand) == false)
-                    {
-                        resultCommand = $"{prevCommand} \"{CommandBuilder.ContinueKey}{sendCommand}\"";
-                    }
+                    await context.CreateUser(telegramUser);
                 }
+                if (String.IsNullOrWhiteSpace(resultCommand) == false)
+                {
+                    if (telegramUser != null && await context.ContinueLastMessage(telegramUser.Id))
+                    {
+                        string? prevCommand = await context.LastMessage(telegramUser.Id);
+                        if (String.IsNullOrWhiteSpace(prevCommand) == false)
+                        {
+                            resultCommand = $"{prevCommand} \"{CommandBuilder.ContinueKey}{sendCommand}\"";
+                        }
+                    }
                 
-                bool foundCommand = false;
-                foreach (var command in _commands)
-                {
-                    if (command.IsNeedCommand(resultCommand))
+                    bool foundCommand = false;
+                    foreach (var command in _commands)
                     {
-                        foundCommand = true;
-                        await command.ExecuteCommand(resultCommand, _client, update, cancellationToken);
-                        break;
+                        if (command.IsNeedCommand(resultCommand))
+                        {
+                            foundCommand = true;
+                            await command.ExecuteCommand(context, resultCommand, _client, update, cancellationToken);
+                            break;
+                        }
+                    }
+                    if (!foundCommand)
+                    {
+                        await _defaultCommand.ExecuteCommand(context, resultCommand, _client, update, cancellationToken);
                     }
                 }
-                if (!foundCommand)
+                else
                 {
-                    await _defaultCommand.ExecuteCommand(resultCommand, _client, update, cancellationToken);
-                }
-            }
-            else
-            {
-                await _defaultCommand?.ExecuteCommand("", _client, update, cancellationToken)!;
+                    await _defaultCommand?.ExecuteCommand(context, "", _client, update, cancellationToken)!;
+                }   
             }
         }
         catch (Exception exception)

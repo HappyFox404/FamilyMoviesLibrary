@@ -1,4 +1,5 @@
 using FamilyMoviesLibrary.ApplicationCommands;
+using FamilyMoviesLibrary.Helpers;
 using FamilyMoviesLibrary.Interfaces;
 using FamilyMoviesLibrary.Services;
 
@@ -10,14 +11,13 @@ public class Application
     
     private bool _isRun = false;
 
-    private readonly IEnumerable<IApplicationCommand> _commands = new List<IApplicationCommand>()
-    {
-        new HelpClientCommand()
-    };
-    private readonly IApplicationCommand _defaultCommand = new DefaultClientCommand();
+    private readonly IEnumerable<IApplicationCommand> _commands;
+    private readonly IApplicationCommand _defaultCommand;
 
     public Application()
     {
+        _commands = SystemHelper.GetApplicationCommands();
+        _defaultCommand = SystemHelper.GetApplicationDefaultCommand();
         SettingsService.Initialization();
         AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
         Instance = this;

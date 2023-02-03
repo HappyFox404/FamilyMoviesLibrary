@@ -1,8 +1,10 @@
 ﻿using FamilyMoviesLibrary.Interfaces;
+using FamilyMoviesLibrary.Models.Atributes;
 using FamilyMoviesLibrary.Services;
 
 namespace FamilyMoviesLibrary.ApplicationCommands;
 
+[ApplicationCommand(true)]
 public class DefaultClientCommand : IApplicationCommand
 {
     public bool IsNeedCommand(string command)

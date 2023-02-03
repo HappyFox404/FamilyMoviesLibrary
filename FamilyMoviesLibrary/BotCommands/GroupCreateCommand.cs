@@ -2,6 +2,8 @@ using FamilyMoviesLibrary.Context;
 using FamilyMoviesLibrary.Context.Models;
 using FamilyMoviesLibrary.Helpers;
 using FamilyMoviesLibrary.Interfaces;
+using FamilyMoviesLibrary.Models;
+using FamilyMoviesLibrary.Models.Atributes;
 using FamilyMoviesLibrary.Models.Exception;
 using FamilyMoviesLibrary.Services;
 using FamilyMoviesLibrary.Services.Helpers;
@@ -14,20 +16,15 @@ using User = Telegram.Bot.Types.User;
 
 namespace FamilyMoviesLibrary.BotCommands;
 
+[BotCommand]
 public class GroupCreateCommand : IBotCommand
 {
     public bool IsNeedCommand(string command)
     {
-        var buildCommand = new CommandBuilder(command);
-        if (buildCommand.ValidCommand && 
-            buildCommand.Command == "/group-create")
-        {
-            return true;
-        }
-        return false;
+        return new CommandBuilder(command).DefinationCommand(BotCommandNames.GroupCreate);
     }
 
-    public async Task ExecuteCommand(string command, TelegramBotClient client, Update update, CancellationToken cancellationToken)
+    public async Task ExecuteCommand(FamilyMoviesLibraryContext context, string command, TelegramBotClient client, Update update, CancellationToken cancellationToken)
     {
         var buildCommand = new CommandBuilder(command);
         if (buildCommand.ValidCommand)
@@ -40,17 +37,17 @@ public class GroupCreateCommand : IBotCommand
 
             if (buildCommand.ContainsContinueKey() == false)
             {
+                await context.SetMessage(user.Id, command, true);
                 await client.SendDefaultMessage(
                     "Введите название группы:",
                     chatId, cancellationToken);
-                await DatabaseHelper.SetMessage(user.Id, command, true);
             }
             else
             {
                 string continueArgument = buildCommand.GetContinueValue();
                 try
                 {
-                    await DatabaseHelper.CreateGroup(user.Id, continueArgument);
+                    await context.CreateGroup(user.Id, continueArgument);
                 }
                 catch (ControllException exception)
                 {
@@ -59,10 +56,10 @@ public class GroupCreateCommand : IBotCommand
                         chatId, cancellationToken);
                     return;
                 }
+                await context.SetMessage(user.Id, command);
                 await client.SendDefaultMessage(
                     "Группа успешно создана. Также я Вас туда добавил",
                     chatId, cancellationToken);
-                await DatabaseHelper.SetMessage(user.Id, command);
             }
         }
     }

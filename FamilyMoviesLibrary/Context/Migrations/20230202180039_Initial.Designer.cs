@@ -3,6 +3,7 @@ using System;
 using FamilyMoviesLibrary.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace FamilyMoviesLibrary.Context.Migrations
 {
     [DbContext(typeof(FamilyMoviesLibraryContext))]
-    partial class FamilyMoviesLibraryContextModelSnapshot : ModelSnapshot
+    [Migration("20230202180039_Initial")]
+    partial class Initial
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -43,32 +46,6 @@ namespace FamilyMoviesLibrary.Context.Migrations
                     b.ToTable("Groups");
                 });
 
-            modelBuilder.Entity("FamilyMoviesLibrary.Context.Models.Message", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("Data")
-                        .HasColumnType("text");
-
-                    b.Property<DateTime>("DateCreated")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<bool>("IsNeedAdditionalMessage")
-                        .HasColumnType("boolean");
-
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uuid");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId")
-                        .IsUnique();
-
-                    b.ToTable("Messages");
-                });
-
             modelBuilder.Entity("FamilyMoviesLibrary.Context.Models.User", b =>
                 {
                     b.Property<Guid>("Id")
@@ -84,25 +61,11 @@ namespace FamilyMoviesLibrary.Context.Migrations
                     b.Property<long>("TelegramId")
                         .HasColumnType("bigint");
 
-                    b.Property<string>("TelegramUserName")
-                        .HasColumnType("text");
-
                     b.HasKey("Id");
 
                     b.HasIndex("GroupId");
 
                     b.ToTable("Users");
-                });
-
-            modelBuilder.Entity("FamilyMoviesLibrary.Context.Models.Message", b =>
-                {
-                    b.HasOne("FamilyMoviesLibrary.Context.Models.User", "User")
-                        .WithOne("Message")
-                        .HasForeignKey("FamilyMoviesLibrary.Context.Models.Message", "UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("FamilyMoviesLibrary.Context.Models.User", b =>
@@ -117,11 +80,6 @@ namespace FamilyMoviesLibrary.Context.Migrations
             modelBuilder.Entity("FamilyMoviesLibrary.Context.Models.Group", b =>
                 {
                     b.Navigation("Users");
-                });
-
-            modelBuilder.Entity("FamilyMoviesLibrary.Context.Models.User", b =>
-                {
-                    b.Navigation("Message");
                 });
 #pragma warning restore 612, 618
         }

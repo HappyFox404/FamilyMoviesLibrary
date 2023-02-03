@@ -89,6 +89,13 @@ public class CommandBuilder
         }
     }
 
+    public bool DefinationCommand(string needCommand)
+    {
+        if (ValidCommand && Command == needCommand)
+            return true;
+        return false;
+    }
+
     public string? GetArgumentValue(string argument)
     {
         foreach (var arg in Arguments)
