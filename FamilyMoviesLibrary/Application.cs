@@ -10,6 +10,7 @@ public class Application
     public static Application? Instance;
     
     private bool _isRun = false;
+    private bool _isErrorInitialization = false;
 
     private readonly IEnumerable<IApplicationCommand> _commands;
     private readonly IApplicationCommand _defaultCommand;
@@ -19,12 +20,25 @@ public class Application
         _commands = SystemHelper.GetApplicationCommands();
         _defaultCommand = SystemHelper.GetApplicationDefaultCommand();
         SettingsService.Initialization();
+        try
+        {
+            StorageService.LoadKinopoiskUnofficalFilterData();
+        }
+        catch
+        {
+            _isErrorInitialization = true;
+        }
         AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
         Instance = this;
     }
 
     public async Task Start()
     {
+        if (_isErrorInitialization)
+        {
+            Console.WriteLine("Error for initialization data, application not started!");
+            return;
+        }
         _isRun = true;
         
         var botToken = SettingsService.GetBotToken();

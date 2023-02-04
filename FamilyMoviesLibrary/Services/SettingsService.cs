@@ -35,6 +35,41 @@ public static class SettingsService
 
     public static string? GetBotToken()
     {
-        return _configurationRoot["Telegram:Token"];
+        var token = _configurationRoot["Telegram:Token"];
+        if (token != default)
+            return token;
+        throw new NullReferenceException("Не указан токен требуемый для работы!");
+    }
+
+    public static string GetUnofficalKinopoiskToken()
+    {
+        var token = _configurationRoot["KinopoiskUnoffical:Token"];
+        if (token != default)
+            return token;
+        throw new NullReferenceException("Не указан токен требуемый для работы!");
+    }
+    
+    public static string GetUnofficalKinopoiskUrl()
+    {
+        var token = _configurationRoot["KinopoiskUnoffical:KinopoiskUnofficalUrl"];
+        if (token != default)
+            return token;
+        throw new NullReferenceException("Не указан url KinopoiskUnoffical!");
+    }
+    
+    public static string GetUnofficalKinopoiskGenresMethod()
+    {
+        var token = _configurationRoot["KinopoiskUnoffical:Genres"];
+        if (token != default)
+            return token;
+        throw new NullReferenceException("Не указан url для получения genres!");
+    }
+    
+    public static string GetUnofficalKinopoiskFilmsMethod()
+    {
+        var token = _configurationRoot["KinopoiskUnoffical:Films"];
+        if (token != default)
+            return token;
+        throw new NullReferenceException("Не указан url для получения films!");
     }
 }

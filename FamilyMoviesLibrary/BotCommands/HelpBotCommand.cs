@@ -33,6 +33,10 @@ public class HelpBotCommand : IBotCommand
                 {
                     InlineKeyboardButton.WithCallbackData(text: "Помощь", callbackData: BotCommandNames.Help),
                     InlineKeyboardButton.WithCallbackData(text: "Группа", callbackData: BotCommandNames.Group),
+                },
+                new []
+                {
+                    InlineKeyboardButton.WithCallbackData(text: "Фильмы", callbackData: BotCommandNames.Film)
                 }
             });
 

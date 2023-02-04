@@ -10,4 +10,8 @@ public static class BotCommandNames
     public const string GroupCreate = "/group-create";
     public const string GroupSearch = "/group-search";
     public const string GroupConnect = "/group-connect";
+    
+    public const string Film = "/film";
+    public const string SearchFilm = "/film-search";
+    public const string LikeFilm = "/film-like";
 }
