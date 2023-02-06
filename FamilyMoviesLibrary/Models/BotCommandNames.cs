@@ -14,4 +14,5 @@ public static class BotCommandNames
     public const string Film = "/film";
     public const string SearchFilm = "/film-search";
     public const string LikeFilm = "/film-like";
+    public const string RecommendFilm = "/film-recommend";
 }

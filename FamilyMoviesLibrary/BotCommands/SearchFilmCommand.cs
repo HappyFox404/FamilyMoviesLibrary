@@ -104,7 +104,7 @@ public class SearchFilmCommand : IBotCommand
                                     .Select(x => x.Genre).ToList());
                             await client.SendDefaultMessage(
                                 $"{filmKinopoiskUnofficalModel.PosterUrl}\n" +
-                                $"{filmKinopoiskUnofficalModel.NameRu} {filmKinopoiskUnofficalModel.Year}\n" +
+                                $"{filmKinopoiskUnofficalModel.NameRu} {((filmKinopoiskUnofficalModel.Year != default) ? filmKinopoiskUnofficalModel : "Не указан")}\n" +
                                 $"Страны: {countries}.\n" +
                                 $"Жанры: {genres}\n" +
                                 $"Рейтинг KP: {filmKinopoiskUnofficalModel.RatingKinopoisk}, Рейтинг IMDB: {filmKinopoiskUnofficalModel.RatingImdb}",

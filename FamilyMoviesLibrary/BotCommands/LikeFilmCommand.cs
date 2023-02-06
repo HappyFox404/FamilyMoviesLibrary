@@ -67,7 +67,6 @@ public class LikeFilmCommand : IBotCommand
                     x.GroupId == needUser.Group.Id && x.KinopoiskId == kpId);
                 if (searchFilm == default)
                 {
-                    await context.SetMessage(user.Id, command, true);
                     await client.SendDefaultMessage(
                         "Укажите рейтинг фильма от 0 до 10, включительно:",
                         chatId, cancellationToken);

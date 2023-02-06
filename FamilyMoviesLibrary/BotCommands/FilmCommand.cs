@@ -51,7 +51,7 @@ public class FilmCommand : IBotCommand
                     InlineKeyboardButton.WithCallbackData(text: "Найти фильм для оценки",
                         callbackData: BotCommandNames.SearchFilm),
                     InlineKeyboardButton.WithCallbackData(text: "Предложи фильм",
-                        callbackData: BotCommandNames.SearchFilm)
+                        callbackData: BotCommandNames.RecommendFilm)
                 }
             });
             
