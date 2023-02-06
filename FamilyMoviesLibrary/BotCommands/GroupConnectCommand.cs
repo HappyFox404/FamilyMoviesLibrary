@@ -34,7 +34,7 @@ public class GroupConnectCommand : IBotCommand
             {
                 await context.SetMessage(user.Id, command, true);
                 await client.SendDefaultMessage(
-                    "Введите название группы для присоединения:",
+                    "Введите название библиотеки для присоединения:",
                     chatId, cancellationToken);
             }
             else
@@ -56,17 +56,17 @@ public class GroupConnectCommand : IBotCommand
                         {
                             needUser.GroupId = needGroup.FirstOrDefault()?.Id;
                             await context.SaveChangesAsync();
-                            messageResponse = "Вы успешно присоединились к группе!";
+                            messageResponse = "Вы успешно присоединились к библиотеки!";
                         }
                     }
                     else
                     {
-                        messageResponse = "При поиске группы выдало более одного совпадения, повторите попытку. (Возможно вы опечатались)";
+                        messageResponse = "При поиске бибилотеки выдало более одного совпадения, повторите попытку. (Возможно вы опечатались)";
                         inlineKeyboard = new(new[]
                         {
                             new[]
                             {
-                                InlineKeyboardButton.WithCallbackData(text: "Вступить в группу",
+                                InlineKeyboardButton.WithCallbackData(text: "Вступить в библиотеку",
                                     callbackData: BotCommandNames.GroupConnect)
                             }
                         });

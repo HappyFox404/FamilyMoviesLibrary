@@ -45,16 +45,16 @@ public class GroupUsersCommand : IBotCommand
                     .Select(x => x.TelegramUserName).ToList();
                 if (usersInGroup.Any() == false)
                 {
-                    message = $"В группе ({group.Name}) нет участников и скорее всего произошла ошибка";
+                    message = $"В бибилотеке ({group.Name}) нет участников и скорее всего произошла ошибка";
                 }
                 else
                 {
-                    message = $"В группе ({group.Name}) состоят:\n{String.Join("\n", usersInGroup)}";
+                    message = $"В библиотеке ({group.Name}) состоят:\n{String.Join("\n", usersInGroup)}";
                 }
             }
             else
             {
-                message = "Вы не находитесь в группе!";
+                message = "Вы не находитесь в библиотеке!";
             }
             await context.SetMessage(user.Id, command);
             await client.SendDefaultMessage(

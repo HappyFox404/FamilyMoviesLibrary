@@ -8,6 +8,7 @@ public class FamilyMoviesLibraryContext : DbContext
     public DbSet<Group> Groups { get; set; } = null!;
     public DbSet<User> Users { get; set; } = null!;
     public DbSet<Message> Messages { get; set; } = null!;
+    public DbSet<Film> Films { get; set; } = null!;
 
     public FamilyMoviesLibraryContext(DbContextOptions<FamilyMoviesLibraryContext> options) : base(options)
     {
@@ -37,5 +38,10 @@ public class FamilyMoviesLibraryContext : DbContext
             .WithOne(x => x.User)
             .HasForeignKey<Message>(x => x.UserId)
             .HasPrincipalKey<User>(x => x.Id);
+
+        modelBuilder.Entity<Film>().HasKey(x => x.Id);
+        modelBuilder.Entity<Film>().Property(x => x.KinopoiskId).IsRequired();
+        modelBuilder.Entity<Film>().Property(x => x.Rate).IsRequired();
+        modelBuilder.Entity<Film>().Property(x => x.GroupId).IsRequired();
     }
 }

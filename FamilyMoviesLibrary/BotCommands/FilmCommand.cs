@@ -39,7 +39,7 @@ public class FilmCommand : IBotCommand
             if (needUser.Group == default)
             {
                 await client.SendDefaultMessage(
-                    "Вы не находитесь в группе для начала вступите в группу или создайте новую",
+                    "Вы не находитесь в библиотеке для начала вступите в библиотеку или создайте новую",
                     chatId, cancellationToken);
                 return;
             }

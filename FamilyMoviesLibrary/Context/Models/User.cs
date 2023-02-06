@@ -2,7 +2,6 @@
 
 public class User : BaseData
 {
-    public Guid Id { get; set; }
     public long TelegramId { get; set; }
 
     public string? TelegramUserName { get; set; }

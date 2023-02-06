@@ -37,7 +37,7 @@ public class GroupExitCommand : IBotCommand
                 try
                 {
                     await context.ExitGroup(user.Id);
-                    message = "Вы успешно вышли из группы";
+                    message = "Вы успешно вышли из библиотеки";
                 }
                 catch (ControllException exception)
                 {
@@ -46,7 +46,7 @@ public class GroupExitCommand : IBotCommand
             }
             else
             {
-                message = "Вы не находитесь в группе!";
+                message = "Вы не находитесь в библиотеке!";
             }
             await context.SetMessage(user.Id, command);
             await client.SendDefaultMessage(

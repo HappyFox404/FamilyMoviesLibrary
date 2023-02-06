@@ -34,7 +34,7 @@ public class GroupSearchCommand : IBotCommand
             {
                 await context.SetMessage(user.Id, command, true);
                 await client.SendDefaultMessage(
-                    "Введите полное название или часть, искомой группы:",
+                    "Введите полное название или часть, искомой библиотеки:",
                     chatId, cancellationToken);
             }
             else
@@ -45,23 +45,31 @@ public class GroupSearchCommand : IBotCommand
                     .Select(x => x.Name).ToListAsync();
                 
                 await context.SetMessage(user.Id, command);
-                string messageResponse = "ничего не найдено";
                 InlineKeyboardMarkup inlineKeyboard = null;
                 if (similarityGroups.Any())
                 {
-                    messageResponse = $"Вот что я нашёл по вашему запросу:\n{String.Join("\n", similarityGroups)}";
-                    inlineKeyboard = new(new[]
+                    await client.SendDefaultMessage(
+                        "Вот что я нашёл по вашему запросу:",
+                        chatId, cancellationToken, inlineKeyboard);
+                    
+                    foreach (var similarityGroup in similarityGroups)
                     {
-                        new[]
+                        inlineKeyboard = new(new[]
                         {
-                            InlineKeyboardButton.WithCallbackData(text: "Вступить в группу",
-                                callbackData: BotCommandNames.GroupConnect)
-                        }
-                    });
+                            new[]
+                            {
+                                InlineKeyboardButton.WithCallbackData(text: "Вступить в библиотеку",
+                                    callbackData: $"{BotCommandNames.GroupConnect} \"-c:{similarityGroup}\"")
+                            }
+                        });
+                        await client.SendDefaultMessage(
+                            $"Билиотека: {similarityGroup}",
+                            chatId, cancellationToken, inlineKeyboard);
+                    }
                 }
-                await client.SendDefaultMessage(
+                /*await client.SendDefaultMessage(
                     messageResponse,
-                    chatId, cancellationToken, inlineKeyboard);
+                    chatId, cancellationToken, inlineKeyboard);*/
             }
         }
     }

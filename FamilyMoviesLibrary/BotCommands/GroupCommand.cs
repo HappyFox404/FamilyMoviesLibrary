@@ -39,7 +39,7 @@ public class GroupCommand : IBotCommand
                 {
                     new[]
                     {
-                        InlineKeyboardButton.WithCallbackData(text: "Выйти из группы",
+                        InlineKeyboardButton.WithCallbackData(text: "Выйти из библиотеки",
                             callbackData: BotCommandNames.GroupExit),
                         InlineKeyboardButton.WithCallbackData(text: "Участники",
                             callbackData: $"{BotCommandNames.GroupUsers} -g:{userData.Group.Id}")
@@ -52,9 +52,9 @@ public class GroupCommand : IBotCommand
                 {
                     new[]
                     {
-                        InlineKeyboardButton.WithCallbackData(text: "Создать группу",
+                        InlineKeyboardButton.WithCallbackData(text: "Создать библиотеку",
                             callbackData: BotCommandNames.GroupCreate),
-                        InlineKeyboardButton.WithCallbackData(text: "Найти группу",
+                        InlineKeyboardButton.WithCallbackData(text: "Найти библиотеку",
                             callbackData: BotCommandNames.GroupSearch),
                     }
                 });

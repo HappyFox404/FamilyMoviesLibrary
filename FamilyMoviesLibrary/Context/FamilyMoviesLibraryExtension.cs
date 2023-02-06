@@ -117,12 +117,12 @@ public static class FamilyMoviesLibraryExtension
                 }
                 else
                 {
-                    throw new ControllException("Группа с таким именем уже существует! Придумайте другое название.");
+                    throw new ControllException("Библиотека с таким именем уже существует! Придумайте другое название.");
                 }
             }
             else
             {
-                throw new ControllException("Пользователь уже находиться в группе, для создания выйдите из текущей.");
+                throw new ControllException("Пользователь уже находиться в бибилотеке, для создания выйдите из текущей.");
             }
         }
         else
@@ -154,7 +154,7 @@ public static class FamilyMoviesLibraryExtension
             }
             else
             {
-                throw new ControllException("Вы не находитесь в группе!");
+                throw new ControllException("Вы не находитесь в бибилотеке!");
             }
         }
         else
@@ -177,7 +177,7 @@ public static class FamilyMoviesLibraryExtension
         }
         else
         {
-            throw new ControllException("Не найдена группа!");
+            throw new ControllException("Не найдена библиотека!");
         }
     }
 }

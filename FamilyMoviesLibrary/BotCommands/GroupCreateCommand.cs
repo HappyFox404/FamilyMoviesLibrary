@@ -39,7 +39,7 @@ public class GroupCreateCommand : IBotCommand
             {
                 await context.SetMessage(user.Id, command, true);
                 await client.SendDefaultMessage(
-                    "Введите название группы:",
+                    "Введите название библиотеки:",
                     chatId, cancellationToken);
             }
             else
@@ -58,7 +58,7 @@ public class GroupCreateCommand : IBotCommand
                 }
                 await context.SetMessage(user.Id, command);
                 await client.SendDefaultMessage(
-                    "Группа успешно создана. Также я Вас туда добавил",
+                    "Библиотека успешно создана. Также я Вас туда добавил",
                     chatId, cancellationToken);
             }
         }
