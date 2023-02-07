@@ -31,6 +31,11 @@ public static class StorageService
                         .Select(s => s.ToObject<GenresKinopoiskUnofficalModel>()).ToList();
                     Countries = (responseData.SelectToken("countries") ?? throw new InvalidOperationException())
                         .Select(s => s.ToObject<CountriesKinopoiskUnofficalModel>()).ToList();
+
+                    if (Genres.Any() == false)
+                        throw new ArgumentNullException("Нет данных о жанрах");
+                    if (Countries.Any() == false)
+                        throw new ArgumentNullException("Нет данных о странах");
                 }
             }
             catch (Exception ex)

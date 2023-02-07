@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using FamilyMoviesLibrary.Models.Exception;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.ReplyMarkups;
@@ -7,28 +8,50 @@ namespace FamilyMoviesLibrary.Services.Helpers;
 
 public class TelegramHelper
 {
-    public static ChatId? GetChatId(Update update)
+    /// <summary>
+    /// Получить ChatId из update
+    /// </summary>
+    /// <param name="update">telegram update</param>
+    /// <returns></returns>
+    /// <exception cref="ControllException">Почему не обработано</exception>
+    public static ChatId GetChatId(Update update)
     {
-        ChatId? chatId = null;
         if (update.Message != default)
-            chatId = update.Message.Chat.Id;
-        else if (update.CallbackQuery != default && update.CallbackQuery.Message != default)
-            chatId = update.CallbackQuery.Message.Chat.Id;
-        return chatId;
+            return update.Message.Chat.Id;
+        if (update.CallbackQuery != default && update.CallbackQuery.Message != default)
+            return update.CallbackQuery.Message.Chat.Id;
+        
+        throw new ControllException($"Не смог определить чат с пользователем телеграм.", false);
     }
     
-    public static User? GetUser(Update update)
+    /// <summary>
+    /// Получить Telegram User из update
+    /// </summary>
+    /// <param name="update">telegram update</param>
+    /// <returns></returns>
+    /// <exception cref="ControllException">Почему не обработано</exception>
+    public static User GetUser(Update update)
     {
-        User? user = null;
-        if (update.Message != default)
-            user = update.Message.From;
-        else if (update.CallbackQuery != default)
-            user = update.CallbackQuery.From;
-        return user;
+        if (update.Message != default && update.Message.From != default)
+            return update.Message.From;
+        if (update.CallbackQuery != default)
+            return update.CallbackQuery.From;
+        
+        throw new ControllException($"Не смог определить пользователя телеграм.", false);
     }
 }
 
 public static class TelegramBotClientExtension {
+    
+    /// <summary>
+    /// Отправка стандартного сообщения от бота
+    /// </summary>
+    /// <param name="client">telegram client</param>
+    /// <param name="message">сообщение</param>
+    /// <param name="chatId">telegram ChatId</param>
+    /// <param name="cancellationToken"></param>
+    /// <param name="inlineKeyboard">Кнопки обратного вызова</param>
+    /// <returns></returns>
     public static async Task<Message?> SendDefaultMessage(this TelegramBotClient client, string message, ChatId? chatId, 
         CancellationToken cancellationToken, InlineKeyboardMarkup? inlineKeyboard = null)
     {

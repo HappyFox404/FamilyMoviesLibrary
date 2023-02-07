@@ -26,35 +26,25 @@ public class GroupUsersCommand : IBotCommand
         var buildCommand = new CommandBuilder(command);
         if (buildCommand.ValidCommand)
         {
-            ChatId? chatId = TelegramHelper.GetChatId(update);
-            User? user = TelegramHelper.GetUser(update);
-            
-            if (user == default)
-                return;
+            ChatId chatId = TelegramHelper.GetChatId(update);
+            User user = TelegramHelper.GetUser(update);
 
-            var userData = await context.Users.FirstOrDefaultAsync(x => x.TelegramId == user.Id);
-            Group? group = null;
-            if (userData != default)
-            {
-                group = await context.Groups.FirstOrDefaultAsync(x => x.Id == userData.GroupId);
-            }
-            string message = String.Empty;
+            var userData = await context.GetUser(user.Id);
+            Group? group = await context.Groups.FirstOrDefaultAsync(x => x.Id == userData.GroupId);
+            
+            string message = "Вас нет в библиотеке.";
             if (group != default)
             {
                 var usersInGroup = context.Users.Where(x => x.GroupId == group.Id)
                     .Select(x => x.TelegramUserName).ToList();
                 if (usersInGroup.Any() == false)
                 {
-                    message = $"В бибилотеке ({group.Name}) нет участников и скорее всего произошла ошибка";
+                    message = $"В бибилотеке ({group.Name}) нет участников и скорее всего произошла ошибка.";
                 }
                 else
                 {
                     message = $"В библиотеке ({group.Name}) состоят:\n{String.Join("\n", usersInGroup)}";
                 }
-            }
-            else
-            {
-                message = "Вы не находитесь в библиотеке!";
             }
             await context.SetMessage(user.Id, command);
             await client.SendDefaultMessage(

@@ -3,6 +3,7 @@ using FamilyMoviesLibrary.BotCommands;
 using FamilyMoviesLibrary.Context;
 using FamilyMoviesLibrary.Helpers;
 using FamilyMoviesLibrary.Interfaces;
+using FamilyMoviesLibrary.Models.Exception;
 using FamilyMoviesLibrary.Services.Helpers;
 using Telegram.Bot;
 using Telegram.Bot.Exceptions;
@@ -80,26 +81,25 @@ public class BotService
     {
         string resultCommand = sendCommand;
         //Кароче нужна обработка предыдущих сообщений
-        try
+        using (FamilyMoviesLibraryContext context =
+               FamilyMoviesLibraryContext.CreateContext(SettingsService.GetDefaultConnectionString()))
         {
-            using (FamilyMoviesLibraryContext context = FamilyMoviesLibraryContext.CreateContext(SettingsService.GetDefaultConnectionString()))
+            try
             {
-                User? telegramUser = TelegramHelper.GetUser(update);
-                if (telegramUser != default)
-                {
-                    await context.CreateUser(telegramUser);
-                }
+                User telegramUser = TelegramHelper.GetUser(update);
+                await context.CreateUser(telegramUser);
+
                 if (String.IsNullOrWhiteSpace(resultCommand) == false)
                 {
-                    if (telegramUser != null && await context.ContinueLastMessage(telegramUser.Id))
+                    if (await context.ContinueLastMessage(telegramUser.Id))
                     {
-                        string? prevCommand = await context.LastMessage(telegramUser.Id);
+                        string prevCommand = await context.LastMessage(telegramUser.Id);
                         if (String.IsNullOrWhiteSpace(prevCommand) == false)
                         {
                             resultCommand = $"{prevCommand} \"{CommandBuilder.ContinueKey}{sendCommand}\"";
                         }
                     }
-                
+
                     bool foundCommand = false;
                     foreach (var command in _commands)
                     {
@@ -110,20 +110,38 @@ public class BotService
                             break;
                         }
                     }
+
                     if (!foundCommand)
                     {
-                        await _defaultCommand.ExecuteCommand(context, resultCommand, _client, update, cancellationToken);
+                        await _defaultCommand.ExecuteCommand(context, resultCommand, _client, update,
+                            cancellationToken);
                     }
                 }
                 else
                 {
                     await _defaultCommand?.ExecuteCommand(context, "", _client, update, cancellationToken)!;
-                }   
+                }
             }
-        }
-        catch (Exception exception)
-        {
-            Console.WriteLine($"Во время обработки запроса, произошла ошибка: {exception}");
+            catch (ControllException controll)
+            {
+                if (controll.UserAnswer)
+                {
+                    User? user = TelegramHelper.GetUser(update);
+                    ChatId? chatId = TelegramHelper.GetChatId(update);
+                    await context.SetMessage(user.Id, "error");
+                    await _client.SendDefaultMessage(
+                        controll.Message,
+                        chatId, cancellationToken);
+                }
+                else
+                {
+                    Console.WriteLine($"Во время обработки запроса, произошла контролируемая ошибка: {controll.Message}");
+                }
+            }
+            catch (Exception exception)
+            {
+                Console.WriteLine($"Во время обработки запроса, произошла ошибка: {exception}");
+            }
         }
     }
 }

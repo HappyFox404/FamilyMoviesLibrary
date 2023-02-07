@@ -24,29 +24,15 @@ public class GroupExitCommand : IBotCommand
         var buildCommand = new CommandBuilder(command);
         if (buildCommand.ValidCommand)
         {
-            ChatId? chatId = TelegramHelper.GetChatId(update);
-            User? user = TelegramHelper.GetUser(update);
+            ChatId chatId = TelegramHelper.GetChatId(update);
+            User user = TelegramHelper.GetUser(update);
+            var userData = await context.GetUser(user.Id);
             
-            if (user == default)
-                return;
-
-            var userData = context.Users.Include(x => x.Group).FirstOrDefault(x => x.TelegramId == user.Id);
-            string message = String.Empty;
+            string message = "Вас нет в библиотеке.";
             if (userData?.Group != default)
             {
-                try
-                {
-                    await context.ExitGroup(user.Id);
-                    message = "Вы успешно вышли из библиотеки";
-                }
-                catch (ControllException exception)
-                {
-                    message = $"{exception.NormalMessage}";
-                }
-            }
-            else
-            {
-                message = "Вы не находитесь в библиотеке!";
+                await context.ExitGroup(user.Id);
+                message = "Вы успешно вышли из библиотеки";
             }
             await context.SetMessage(user.Id, command);
             await client.SendDefaultMessage(

@@ -29,11 +29,8 @@ public class GroupCreateCommand : IBotCommand
         var buildCommand = new CommandBuilder(command);
         if (buildCommand.ValidCommand)
         {
-            ChatId? chatId = TelegramHelper.GetChatId(update);
-            User? user = TelegramHelper.GetUser(update);
-
-            if (user == default)
-                return;
+            ChatId chatId = TelegramHelper.GetChatId(update);
+            User user = TelegramHelper.GetUser(update);
 
             if (buildCommand.ContainsContinueKey() == false)
             {
@@ -45,17 +42,7 @@ public class GroupCreateCommand : IBotCommand
             else
             {
                 string continueArgument = buildCommand.GetContinueValue();
-                try
-                {
-                    await context.CreateGroup(user.Id, continueArgument);
-                }
-                catch (ControllException exception)
-                {
-                    await client.SendDefaultMessage(
-                        exception.NormalMessage,
-                        chatId, cancellationToken);
-                    return;
-                }
+                await context.CreateGroup(user.Id, continueArgument);
                 await context.SetMessage(user.Id, command);
                 await client.SendDefaultMessage(
                     "Библиотека успешно создана. Также я Вас туда добавил",

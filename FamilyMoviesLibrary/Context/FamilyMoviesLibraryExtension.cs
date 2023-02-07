@@ -7,16 +7,18 @@ namespace FamilyMoviesLibrary.Context;
 
 public static class FamilyMoviesLibraryExtension
 {
-    public static async Task<bool> CreateUser(this FamilyMoviesLibraryContext context, Telegram.Bot.Types.User telegramUser)
+    /// <summary>
+    /// Создание нового пользователя, если он есть ничего не происходит
+    /// </summary>
+    /// <param name="context">контекст</param>
+    /// <param name="telegramUser">id пользователя в телеграм</param>
+    public static async Task CreateUser(this FamilyMoviesLibraryContext context, Telegram.Bot.Types.User telegramUser)
     {
         var needUser = await context.Users.FirstOrDefaultAsync(x => x.TelegramId == telegramUser.Id);
         if (needUser == default)
         {
             context.Users.Add(new User() { Id = Guid.NewGuid(), TelegramId = telegramUser.Id});
-            int changes = await context.SaveChangesAsync();
-
-            if (changes > 0)
-                return true;
+            await context.SaveChangesAsync();
         }
         else
         {
@@ -29,9 +31,33 @@ public static class FamilyMoviesLibraryExtension
                 await context.SaveChangesAsync();
             }
         }
-
-        return false;
     }
+
+    /// <summary>
+    /// Получение пользователя
+    /// </summary>
+    /// <param name="context">контекст</param>
+    /// <param name="userId">id пользователя в телеграм</param>
+    /// <returns></returns>
+    /// <exception cref="ControllException">Пользователь не найден</exception>
+    public static async Task<User> GetUser(this FamilyMoviesLibraryContext context, long userId)
+    {
+        var needUser = await context.Users
+            .Include(x => x.Group)
+            .Include(x => x.Message)
+            .FirstOrDefaultAsync(x => x.TelegramId == userId);
+        if (needUser == default)
+        {
+            throw new ControllException($"Не найден пользователь в БД. {userId}", false);
+        }
+        return needUser;
+    }
+
+    /// <summary>
+    /// Удаление сообщения пользователя
+    /// </summary>
+    /// <param name="context">контекст</param>
+    /// <param name="userId">id пользователя telegram</param>
     public static void ClearMessage(this FamilyMoviesLibraryContext context, long userId)
     {
         if (context.Users.Any(x => x.TelegramId == userId))
@@ -46,6 +72,14 @@ public static class FamilyMoviesLibraryExtension
             context.SaveChanges();
         }
     }
+    
+    /// <summary>
+    /// Сохранение сообщения
+    /// </summary>
+    /// <param name="context">контекст</param>
+    /// <param name="userId">id пользователя telegram</param>
+    /// <param name="message">текст сообщения</param>
+    /// <param name="isNeedAdditionalMessage">Требует продолжения обработки?</param>
     public static async Task SetMessage(this FamilyMoviesLibraryContext context, long userId, string? message, bool isNeedAdditionalMessage = false)
     {
         if (context.Users.Any(x => x.TelegramId == userId))
@@ -69,6 +103,13 @@ public static class FamilyMoviesLibraryExtension
             }
         }
     }
+    
+    /// <summary>
+    /// Требует ли сообщения пользователя обработки?
+    /// </summary>
+    /// <param name="context">контекст</param>
+    /// <param name="userId">id пользователя telegram</param>
+    /// <returns></returns>
     public static async Task<bool> ContinueLastMessage(this FamilyMoviesLibraryContext context, long userId)
     {
         if (context.Users.Any(x => x.TelegramId == userId))
@@ -82,7 +123,15 @@ public static class FamilyMoviesLibraryExtension
         }
         return false;
     }
-    public static async Task<string?> LastMessage(this FamilyMoviesLibraryContext context, long userId)
+    
+    /// <summary>
+    /// Получить текст сообщения
+    /// </summary>
+    /// <param name="context">контекст</param>
+    /// <param name="userId">id пользователя telegram</param>
+    /// <returns></returns>
+    /// <exception cref="ControllException">Нет сообщения или сообщение равно NULL</exception>
+    public static async Task<string> LastMessage(this FamilyMoviesLibraryContext context, long userId)
     {
         if (context.Users.Any(x => x.TelegramId == userId))
         {
@@ -90,80 +139,76 @@ public static class FamilyMoviesLibraryExtension
                 .FirstOrDefaultAsync(x => x.TelegramId == userId);
             if (user?.Message != null)
             {
-                return user.Message.Data;
+                return user?.Message?.Data ?? 
+                       throw new ControllException($"Не удалось получить данные о последнем сообщение: {userId}", false);
             }
         }
-        return null;
-    }
-    public static async Task CreateGroup(this FamilyMoviesLibraryContext context, long userId, string groupName)
-    {
-        if (context.Users.Any(x => x.TelegramId == userId))
-        {
-            var user = await context.Users.Include(x => x.Group)
-                .FirstOrDefaultAsync(x => x.TelegramId == userId);
-            if (user?.Group == default)
-            {
-                if (context.Groups.Any(x => x.Name.ToLower() == groupName.ToLower()) == false)
-                {
-                    var newGroupId = Guid.NewGuid();
-                    await context.Groups.AddAsync(new Group()
-                    {
-                        Id = newGroupId,
-                        Name = groupName
-                    });
-                    await context.SaveChangesAsync();
-                    user.GroupId = newGroupId;
-                    await context.SaveChangesAsync();
-                }
-                else
-                {
-                    throw new ControllException("Библиотека с таким именем уже существует! Придумайте другое название.");
-                }
-            }
-            else
-            {
-                throw new ControllException("Пользователь уже находиться в бибилотеке, для создания выйдите из текущей.");
-            }
-        }
-        else
-        {
-            throw new ControllException("Не найден пользователь!");
-        }
-    }
-
-    public static async Task ExitGroup(this FamilyMoviesLibraryContext context, long userId)
-    {
-        if (context.Users.Any(x => x.TelegramId == userId))
-        {
-            var user = await context.Users.Include(x => x.Group)
-                .FirstOrDefaultAsync(x => x.TelegramId == userId);
-            if (user?.Group != default)
-            {
-                Guid? groupId = user?.Group.Id;
-                if (groupId.HasValue)
-                {
-                    user.GroupId = null;
-                    await context.SaveChangesAsync();
-                    var needGroup = await context.Groups.Include(x => x.Users).FirstOrDefaultAsync(x => x.Id == groupId);
-                    if (needGroup != default && needGroup.Users.Any() == false)
-                    {
-                        context.DeleteGroup(groupId.Value);
-                    }
-                    return;
-                }
-            }
-            else
-            {
-                throw new ControllException("Вы не находитесь в бибилотеке!");
-            }
-        }
-        else
-        {
-            throw new ControllException("Не найден пользователь!");
-        }
-        throw new ControllException("Произошла непредвиденная ошибка!");
+        throw new ControllException($"Не удалось получить данные о последнем сообщение: {userId}", false);
     }
     
+    /// <summary>
+    /// Создание группы
+    /// </summary>
+    /// <param name="context">контекст</param>
+    /// <param name="userId">id пользователя telegram</param>
+    /// <param name="groupName">имя группы</param>
+    /// <exception cref="ControllException">Причина, по которой не выполнено</exception>
+    public static async Task CreateGroup(this FamilyMoviesLibraryContext context, long userId, string groupName)
+    {
+        var user = await context.GetUser(userId);
+        if (user?.Group == default)
+        {
+            if (context.Groups.Any(x => x.Name.ToLower() == groupName.ToLower()) == false)
+            {
+                var newGroupId = Guid.NewGuid();
+                await context.Groups.AddAsync(new Group()
+                {
+                    Id = newGroupId,
+                    Name = groupName
+                });
+                await context.SaveChangesAsync();
+                user.GroupId = newGroupId;
+                await context.SaveChangesAsync();
+                return;
+            }
+            throw new ControllException("Данная библиотека существует.");
+        }
+        throw new ControllException("Пользователь уже находиться в бибилотеке, для создания выйдите из текущей.");
+    }
+    
+    /// <summary>
+    /// Выход пользователя из группы
+    /// </summary>
+    /// <param name="context">контекст</param>
+    /// <param name="userId">id пользователя telegram</param>
+    /// <exception cref="ControllException">Причина, по которой не выполнено</exception>
+    public static async Task ExitGroup(this FamilyMoviesLibraryContext context, long userId)
+    {
+        var user = await context.GetUser(userId);
+        if (user.Group != default)
+        {
+            Guid? groupId = user?.Group.Id;
+            if (groupId.HasValue)
+            {
+                user.GroupId = null;
+                await context.SaveChangesAsync();
+                var needGroup = await context.Groups.Include(x => x.Users).FirstOrDefaultAsync(x => x.Id == groupId);
+                if (needGroup != default && needGroup.Users.Any() == false)
+                {
+                    context.DeleteGroup(groupId.Value);
+                }
+                return;
+            }
+        }
+        throw new ControllException("Библиотека не найдена.");
+    }
+    
+    /// <summary>
+    /// Удаление группы
+    /// </summary>
+    /// <param name="context">контекст</param>
+    /// <param name="userId">id пользователя telegram</param>
+    /// <exception cref="ControllException">Причина, по которой не выполнено</exception>
     public static void DeleteGroup(this FamilyMoviesLibraryContext context, Guid groupId)
     {
         if (context.Groups.Any(x => x.Id == groupId))
@@ -173,11 +218,9 @@ public static class FamilyMoviesLibraryExtension
             {
                 context.Groups.Remove(needGroup);
                 context.SaveChanges();
+                return;
             }
         }
-        else
-        {
-            throw new ControllException("Не найдена библиотека!");
-        }
+        throw new ControllException($"Не найдена библиотека {groupId}", false);
     }
 }

@@ -89,6 +89,11 @@ public class CommandBuilder
         }
     }
 
+    /// <summary>
+    /// Проверяет совпадение команд
+    /// </summary>
+    /// <param name="needCommand">название</param>
+    /// <returns></returns>
     public bool DefinationCommand(string needCommand)
     {
         if (ValidCommand && Command == needCommand)
@@ -96,6 +101,11 @@ public class CommandBuilder
         return false;
     }
 
+    /// <summary>
+    /// Получить значение из аргумента
+    /// </summary>
+    /// <param name="argument">аргумент</param>
+    /// <returns></returns>
     public string? GetArgumentValue(string argument)
     {
         foreach (var arg in Arguments)
@@ -109,6 +119,11 @@ public class CommandBuilder
         return null;
     }
     
+    /// <summary>
+    /// Получить значение из аргумента (Continue)
+    /// </summary>
+    /// <returns></returns>
+    /// <exception cref="ArgumentOutOfRangeException"></exception>
     public string GetContinueValue()
     {
         foreach (var arg in Arguments)
@@ -121,11 +136,20 @@ public class CommandBuilder
         throw new ArgumentOutOfRangeException($"Не найден ключ продолжения");
     }
 
+    /// <summary>
+    /// Содержит ли команда аргумент
+    /// </summary>
+    /// <param name="key">аргумент</param>
+    /// <returns></returns>
     public bool ContainsArgumentKey(string key)
     {
         return RawCommand.Contains(key);
     }
 
+    /// <summary>
+    /// Содержит ли ключ (Continue)
+    /// </summary>
+    /// <returns></returns>
     public bool ContainsContinueKey()
     {
         return RawCommand.Contains(ContinueKey);

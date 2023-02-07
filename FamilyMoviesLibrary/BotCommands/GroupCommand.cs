@@ -3,6 +3,7 @@ using FamilyMoviesLibrary.Helpers;
 using FamilyMoviesLibrary.Interfaces;
 using FamilyMoviesLibrary.Models;
 using FamilyMoviesLibrary.Models.Atributes;
+using FamilyMoviesLibrary.Models.Exception;
 using FamilyMoviesLibrary.Services;
 using FamilyMoviesLibrary.Services.Helpers;
 using Microsoft.EntityFrameworkCore;
@@ -25,15 +26,12 @@ public class GroupCommand : IBotCommand
         var buildCommand = new CommandBuilder(command);
         if (buildCommand.ValidCommand)
         {
-            ChatId? chatId = TelegramHelper.GetChatId(update);
-            User? user = TelegramHelper.GetUser(update);
+            ChatId chatId = TelegramHelper.GetChatId(update);
+            User user = TelegramHelper.GetUser(update);
+            var userData = await context.GetUser(user.Id);
             
-            if (user == default)
-                return;
-
-            var userData = context.Users.Include(x => x.Group).FirstOrDefault(x => x.TelegramId == user.Id);
             InlineKeyboardMarkup inlineKeyboard;
-            if (userData?.Group != default)
+            if (userData.Group != default)
             {
                 inlineKeyboard = new(new[]
                 {
@@ -59,6 +57,7 @@ public class GroupCommand : IBotCommand
                     }
                 });
             }
+            
             await context.SetMessage(user.Id, command);
             await client.SendDefaultMessage(
                 "Вот что я могу Вам предложить:",

@@ -28,22 +28,15 @@ public class SearchFilmCommand : IBotCommand
         var buildCommand = new CommandBuilder(command);
         if (buildCommand.ValidCommand)
         {
-            ChatId? chatId = TelegramHelper.GetChatId(update);
-            User? user = TelegramHelper.GetUser(update);
-            
-            if (user == default)
-                return;
+            ChatId chatId = TelegramHelper.GetChatId(update);
+            User user = TelegramHelper.GetUser(update);
 
-            var needUser = await context.Users.Include(x => x.Group).FirstOrDefaultAsync(x => x.TelegramId == user.Id);
-            if (needUser == default)
-            {
-                throw new ArgumentNullException("не найден пользователь");
-            }
+            var needUser = await context.GetUser(user.Id);
 
             if (needUser.Group == default)
             {
                 await client.SendDefaultMessage(
-                    "Вы не находитесь в библиотеке для начала вступите в библиотеку или создайте новую",
+                    "Вы не находитесь в библиотеке! Вступите в библиотеку или создайте новую.",
                     chatId, cancellationToken);
                 return;
             }
@@ -61,8 +54,6 @@ public class SearchFilmCommand : IBotCommand
 
                 List<FilmKinopoiskUnofficalModel> films = await new ApiKinopoiskRequestHelper().SearchFilm(continueArgument);
 
-                
-                string messageResponse = "ничего не найдено";
                 if (films.Any())
                 {
                     if (films.Count() > 10)
@@ -77,7 +68,7 @@ public class SearchFilmCommand : IBotCommand
                         });
                         await context.SetMessage(user.Id, command);
                         await client.SendDefaultMessage(
-                            "Слишком много совпадений, попробуйте уточнить запрос.",
+                            $"Слишком много совпадений ({films.Count()}), попробуйте уточнить запрос.",
                             chatId, cancellationToken, inlineKeyboard);
                     }
                     else

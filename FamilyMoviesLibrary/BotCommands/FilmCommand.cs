@@ -2,6 +2,7 @@ using FamilyMoviesLibrary.Context;
 using FamilyMoviesLibrary.Interfaces;
 using FamilyMoviesLibrary.Models;
 using FamilyMoviesLibrary.Models.Atributes;
+using FamilyMoviesLibrary.Models.Exception;
 using FamilyMoviesLibrary.Services.Helpers;
 using Microsoft.EntityFrameworkCore;
 using Telegram.Bot;
@@ -24,24 +25,14 @@ public class FilmCommand : IBotCommand
         var buildCommand = new CommandBuilder(command);
         if (buildCommand.ValidCommand)
         {
-            ChatId? chatId = TelegramHelper.GetChatId(update);
-            User? user = TelegramHelper.GetUser(update);
-            
-            if (user == default)
-                return;
-            
-            var needUser = await context.Users.Include(x => x.Group).FirstOrDefaultAsync(x => x.TelegramId == user.Id);
-            if (needUser == default)
-            {
-                throw new ArgumentNullException("не найден пользователь");
-            }
+            ChatId chatId = TelegramHelper.GetChatId(update);
+            User user = TelegramHelper.GetUser(update);
+            var needUser = await context.GetUser(user.Id);
 
             if (needUser.Group == default)
             {
-                await client.SendDefaultMessage(
-                    "Вы не находитесь в библиотеке для начала вступите в библиотеку или создайте новую",
-                    chatId, cancellationToken);
-                return;
+                throw new ControllException(
+                    "Вы не находитесь в библиотеке! Вступите в библиотеку или создайте новую.");
             }
 
             InlineKeyboardMarkup inlineKeyboard = new(new[]

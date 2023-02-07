@@ -2,6 +2,7 @@ using FamilyMoviesLibrary.Context;
 using FamilyMoviesLibrary.Interfaces;
 using FamilyMoviesLibrary.Models;
 using FamilyMoviesLibrary.Models.Atributes;
+using FamilyMoviesLibrary.Models.Exception;
 using FamilyMoviesLibrary.Services.Helpers;
 using Microsoft.EntityFrameworkCore;
 using Telegram.Bot;
@@ -24,11 +25,8 @@ public class GroupSearchCommand : IBotCommand
         var buildCommand = new CommandBuilder(command);
         if (buildCommand.ValidCommand)
         {
-            ChatId? chatId = TelegramHelper.GetChatId(update);
-            User? user = TelegramHelper.GetUser(update);
-            
-            if (user == default)
-                return;
+            ChatId chatId = TelegramHelper.GetChatId(update);
+            User user = TelegramHelper.GetUser(update);
             
             if (buildCommand.ContainsContinueKey() == false)
             {
@@ -67,9 +65,12 @@ public class GroupSearchCommand : IBotCommand
                             chatId, cancellationToken, inlineKeyboard);
                     }
                 }
-                /*await client.SendDefaultMessage(
-                    messageResponse,
-                    chatId, cancellationToken, inlineKeyboard);*/
+                else
+                {
+                    await client.SendDefaultMessage(
+                        "Я ничего не нашёл.",
+                        chatId, cancellationToken, inlineKeyboard);
+                }
             }
         }
     }

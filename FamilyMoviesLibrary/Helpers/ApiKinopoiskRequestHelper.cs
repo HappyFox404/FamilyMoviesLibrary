@@ -16,6 +16,12 @@ public class ApiKinopoiskRequestHelper
         _client = new RestClient(SettingsService.GetUnofficalKinopoiskUrl());
     }
 
+    /// <summary>
+    /// Поиск фильма по названию
+    /// </summary>
+    /// <param name="name">название фильмы</param>
+    /// <returns></returns>
+    /// <exception cref="ControllException">Причина по которой не обработано</exception>
     public async Task<List<FilmKinopoiskUnofficalModel>> SearchFilm(string name)
     {
         try
@@ -41,7 +47,7 @@ public class ApiKinopoiskRequestHelper
                 result = responseData.SelectToken("items").Select(s => s.ToObject<FilmKinopoiskUnofficalModel>()).ToList();
                 return result;
             }
-            throw new ControllException("Ошибка прии получении данных фильмов.");
+            throw new ControllException("Ошибка прии получении данных фильмов.", false);
         }
         catch (Exception ex)
         {
@@ -50,6 +56,13 @@ public class ApiKinopoiskRequestHelper
         }
     }
     
+    /// <summary>
+    /// Поиск фильма по жанру и странице
+    /// </summary>
+    /// <param name="genre">жанр фильма</param>
+    /// <param name="page">страница</param>
+    /// <returns></returns>
+    /// <exception cref="ControllException">Причина по которой не обработано</exception>
     public async Task<List<FilmKinopoiskUnofficalModel>> RecommendFilm(int genre, int page)
     {
         try
@@ -77,7 +90,7 @@ public class ApiKinopoiskRequestHelper
                 return result;
             }
 
-            throw new ControllException("Ошибка прии получении данных фильмов.");
+            throw new ControllException("Ошибка прии получении данных фильмов.", false);
         }
         catch (Exception ex)
         {

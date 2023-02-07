@@ -5,6 +5,7 @@ using FamilyMoviesLibrary.Interfaces;
 using FamilyMoviesLibrary.Models;
 using FamilyMoviesLibrary.Models.Atributes;
 using FamilyMoviesLibrary.Models.Data;
+using FamilyMoviesLibrary.Models.Exception;
 using FamilyMoviesLibrary.Services.Helpers;
 using Microsoft.EntityFrameworkCore;
 using Telegram.Bot;
@@ -28,22 +29,15 @@ public class LikeFilmCommand : IBotCommand
         var buildCommand = new CommandBuilder(command);
         if (buildCommand.ValidCommand)
         {
-            ChatId? chatId = TelegramHelper.GetChatId(update);
-            User? user = TelegramHelper.GetUser(update);
-            
-            if (user == default)
-                return;
+            ChatId chatId = TelegramHelper.GetChatId(update);
+            User user = TelegramHelper.GetUser(update);
 
-            var needUser = await context.Users.Include(x => x.Group).FirstOrDefaultAsync(x => x.TelegramId == user.Id);
-            if (needUser == default)
-            {
-                throw new ArgumentNullException("не найден пользователь");
-            }
+            var needUser = await context.GetUser(user.Id);
 
             if (needUser.Group == default)
             {
                 await client.SendDefaultMessage(
-                    "Вы не находитесь в библиотеке для начала вступите в библиотеку или создайте новую",
+                    "Вы не находитесь в библиотеке! Вступите в библиотеку или создайте новую.",
                     chatId, cancellationToken);
                 return;
             }
@@ -63,6 +57,7 @@ public class LikeFilmCommand : IBotCommand
                     await context.SetMessage(user.Id, command);
                     return;
                 }
+                
                 var searchFilm = await context.Films.FirstOrDefaultAsync(x =>
                     x.GroupId == needUser.Group.Id && x.KinopoiskId == kpId);
                 if (searchFilm == default)
@@ -121,41 +116,30 @@ public class LikeFilmCommand : IBotCommand
                     return;
                 }
 
-                try
+                var searchFilm = await context.Films.FirstOrDefaultAsync(x =>
+                    x.GroupId == needUser.Group.Id && x.KinopoiskId == kpId);
+                if (searchFilm == default)
                 {
-                    var searchFilm = await context.Films.FirstOrDefaultAsync(x =>
-                        x.GroupId == needUser.Group.Id && x.KinopoiskId == kpId);
-                    if (searchFilm == default)
+                    context.Films.Add(new Film()
                     {
-                        context.Films.Add(new Film()
-                        {
-                            Id = Guid.NewGuid(),
-                            KinopoiskId = kpId,
-                            Rate = userRate,
-                            GroupId = needUser.Group.Id
-                        });
-                        await context.SaveChangesAsync();
-                        await client.SendDefaultMessage(
-                            "Ваша оценка добавлена к фильму и занесена в вашу библиотеку.",
-                            chatId, cancellationToken);
-                        await context.SetMessage(user.Id, command);
-                    }
-                    else
-                    {
-                        await client.SendDefaultMessage(
-                            $"Данный фильм уже есть в вашей бибилотеке и имеет оценку: {searchFilm.Rate}",
-                            chatId, cancellationToken);
-                        await context.SetMessage(user.Id, command);
-                    }
-                }
-                catch
-                {
+                        Id = Guid.NewGuid(),
+                        KinopoiskId = kpId,
+                        Rate = userRate,
+                        GroupId = needUser.Group.Id
+                    });
+                    await context.SaveChangesAsync();
                     await client.SendDefaultMessage(
-                        "произошла системная ошибка. Не удалось добавить фильм в библиотеку.",
+                        "Ваша оценка добавлена к фильму и занесена в вашу библиотеку.",
                         chatId, cancellationToken);
                     await context.SetMessage(user.Id, command);
                 }
-
+                else
+                {
+                    await client.SendDefaultMessage(
+                        $"Данный фильм уже есть в вашей бибилотеке и имеет оценку: {searchFilm.Rate}",
+                        chatId, cancellationToken);
+                    await context.SetMessage(user.Id, command);
+                }
             }
         }
     }

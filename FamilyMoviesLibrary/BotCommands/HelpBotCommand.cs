@@ -3,6 +3,7 @@ using FamilyMoviesLibrary.Helpers;
 using FamilyMoviesLibrary.Interfaces;
 using FamilyMoviesLibrary.Models;
 using FamilyMoviesLibrary.Models.Atributes;
+using FamilyMoviesLibrary.Models.Exception;
 using FamilyMoviesLibrary.Services.Helpers;
 using Telegram.Bot;
 using Telegram.Bot.Types;
@@ -23,9 +24,8 @@ public class HelpBotCommand : IBotCommand
     {
         if (update.Message != default || update.CallbackQuery != default)
         {
-            User? user = TelegramHelper.GetUser(update);
-            if (user == default)
-                return;
+            User user = TelegramHelper.GetUser(update);
+            ChatId chatId = TelegramHelper.GetChatId(update);
             
             InlineKeyboardMarkup inlineKeyboard = new(new[]
             {
@@ -39,8 +39,6 @@ public class HelpBotCommand : IBotCommand
                     InlineKeyboardButton.WithCallbackData(text: "Фильмы", callbackData: BotCommandNames.Film)
                 }
             });
-
-            ChatId chatId = TelegramHelper.GetChatId(update);
             
             await context.SetMessage(user.Id, command);
             await client.SendDefaultMessage("Список доступных команд:",
