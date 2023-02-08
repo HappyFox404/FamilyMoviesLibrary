@@ -12,7 +12,7 @@ public class FamilyMoviesLibraryContext : DbContext
 
     public FamilyMoviesLibraryContext(DbContextOptions<FamilyMoviesLibraryContext> options) : base(options)
     {
-
+        Database.EnsureCreated();
     }
 
     public static FamilyMoviesLibraryContext CreateContext(string connection)

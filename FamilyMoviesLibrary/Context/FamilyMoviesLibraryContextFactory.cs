@@ -8,8 +8,8 @@ public class FamilyMoviesLibraryContextFactory : IDesignTimeDbContextFactory<Fam
     public FamilyMoviesLibraryContext CreateDbContext(string[] args)
     {
         var optionsBuilder = new DbContextOptionsBuilder<FamilyMoviesLibraryContext>();
-        //optionsBuilder.UseNpgsql("Host=localhost;Port=5432;Database=LibraryMovies;Username=admin;Password=12345rvs");
-        optionsBuilder.UseNpgsql("Host=localhost;Port=5432;Database=LibraryMovies;Username=postgres;Password=123QWE!@#");
+        optionsBuilder.UseNpgsql("Host=localhost;Port=5432;Database=LibraryMovies;Username=admin;Password=12345rvs");
+        //optionsBuilder.UseNpgsql("Host=localhost;Port=5432;Database=LibraryMovies;Username=postgres;Password=123QWE!@#");
         return new FamilyMoviesLibraryContext(optionsBuilder.Options);
     }
 }
