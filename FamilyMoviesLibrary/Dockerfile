@@ -1,5 +1,4 @@
-FROM mcr.microsoft.com/dotnet/aspnet:6.0
+FROM mcr.microsoft.com/dotnet/runtime:6.0
 WORKDIR /App
-COPY . ./
-
-CMD ["dotnet", "FamilyMoviesLibrary.dll"]
+COPY ./bin/Release/net6.0 ./
+ENTRYPOINT ["dotnet", "FamilyMoviesLibrary.dll"]
