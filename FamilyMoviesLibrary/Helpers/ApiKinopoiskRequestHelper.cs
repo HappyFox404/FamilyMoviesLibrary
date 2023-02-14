@@ -13,7 +13,7 @@ public class ApiKinopoiskRequestHelper
     
     public ApiKinopoiskRequestHelper()
     {
-        _client = new RestClient(SettingsService.GetUnofficalKinopoiskUrl());
+        //_client = new RestClient(SettingsService.GetUnofficalKinopoiskUrl());
     }
 
     /// <summary>
@@ -26,27 +26,27 @@ public class ApiKinopoiskRequestHelper
     {
         try
         {
-            List<FilmKinopoiskUnofficalModel> result = new();
-            string token = SettingsService.GetUnofficalKinopoiskToken();
-            var request = new RestRequest(SettingsService.GetUnofficalKinopoiskFilmsMethod())
-                .AddHeader("X-API-KEY", token)
-                .AddHeader("Content-Type", "application/json")
-                .AddParameter("order", "RATING")
-                .AddParameter("type", "ALL")
-                .AddParameter("ratingFrom", "0")
-                .AddParameter("ratingTo", "10")
-                .AddParameter("yearFrom", "1000")
-                .AddParameter("yearTo", "3000")
-                .AddParameter("page", "1")
-                .AddParameter("keyword", name);
-
-            var response = await _client.GetAsync(request);
-            if (response.StatusCode == HttpStatusCode.OK && response.Content != null)
-            {
-                JObject responseData = JObject.Parse(response.Content);
-                result = responseData.SelectToken("items").Select(s => s.ToObject<FilmKinopoiskUnofficalModel>()).ToList();
-                return result;
-            }
+            // List<FilmKinopoiskUnofficalModel> result = new();
+            // string token = SettingsService.GetUnofficalKinopoiskToken();
+            // var request = new RestRequest(SettingsService.GetUnofficalKinopoiskFilmsMethod())
+            //     .AddHeader("X-API-KEY", token)
+            //     .AddHeader("Content-Type", "application/json")
+            //     .AddParameter("order", "RATING")
+            //     .AddParameter("type", "ALL")
+            //     .AddParameter("ratingFrom", "0")
+            //     .AddParameter("ratingTo", "10")
+            //     .AddParameter("yearFrom", "1000")
+            //     .AddParameter("yearTo", "3000")
+            //     .AddParameter("page", "1")
+            //     .AddParameter("keyword", name);
+            //
+            // var response = await _client.GetAsync(request);
+            // if (response.StatusCode == HttpStatusCode.OK && response.Content != null)
+            // {
+            //     JObject responseData = JObject.Parse(response.Content);
+            //     result = responseData.SelectToken("items").Select(s => s.ToObject<FilmKinopoiskUnofficalModel>()).ToList();
+            //     return result;
+            // }
             throw new ControllException("Ошибка прии получении данных фильмов.", false);
         }
         catch (Exception ex)
@@ -67,28 +67,28 @@ public class ApiKinopoiskRequestHelper
     {
         try
         {
-            List<FilmKinopoiskUnofficalModel> result = new();
-            string token = SettingsService.GetUnofficalKinopoiskToken();
-            var request = new RestRequest(SettingsService.GetUnofficalKinopoiskFilmsMethod())
-                .AddHeader("X-API-KEY", token)
-                .AddHeader("Content-Type", "application/json")
-                .AddParameter("order", "RATING")
-                .AddParameter("type", "ALL")
-                .AddParameter("ratingFrom", "0")
-                .AddParameter("ratingTo", "10")
-                .AddParameter("yearFrom", "1000")
-                .AddParameter("yearTo", "3000")
-                .AddParameter("page", page.ToString())
-                .AddParameter("genres", genre.ToString());
-
-            var response = await _client.GetAsync(request);
-            if (response.StatusCode == HttpStatusCode.OK && response.Content != null)
-            {
-                JObject responseData = JObject.Parse(response.Content);
-                result = responseData.SelectToken("items").Select(s => s.ToObject<FilmKinopoiskUnofficalModel>())
-                    .ToList();
-                return result;
-            }
+            // List<FilmKinopoiskUnofficalModel> result = new();
+            // string token = SettingsService.GetUnofficalKinopoiskToken();
+            // var request = new RestRequest(SettingsService.GetUnofficalKinopoiskFilmsMethod())
+            //     .AddHeader("X-API-KEY", token)
+            //     .AddHeader("Content-Type", "application/json")
+            //     .AddParameter("order", "RATING")
+            //     .AddParameter("type", "ALL")
+            //     .AddParameter("ratingFrom", "0")
+            //     .AddParameter("ratingTo", "10")
+            //     .AddParameter("yearFrom", "1000")
+            //     .AddParameter("yearTo", "3000")
+            //     .AddParameter("page", page.ToString())
+            //     .AddParameter("genres", genre.ToString());
+            //
+            // var response = await _client.GetAsync(request);
+            // if (response.StatusCode == HttpStatusCode.OK && response.Content != null)
+            // {
+            //     JObject responseData = JObject.Parse(response.Content);
+            //     result = responseData.SelectToken("items").Select(s => s.ToObject<FilmKinopoiskUnofficalModel>())
+            //         .ToList();
+            //     return result;
+            // }
 
             throw new ControllException("Ошибка прии получении данных фильмов.", false);
         }

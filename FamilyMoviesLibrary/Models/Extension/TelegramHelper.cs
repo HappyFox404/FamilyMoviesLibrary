@@ -1,20 +1,17 @@
-using System.Diagnostics;
 using FamilyMoviesLibrary.Models.Exception;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.ReplyMarkups;
 
-namespace FamilyMoviesLibrary.Services.Helpers;
-
-public class TelegramHelper
-{
+namespace FamilyMoviesLibrary.Models.Extension;
+public static class TelegramBotClientExtension {
     /// <summary>
     /// Получить ChatId из update
     /// </summary>
     /// <param name="update">telegram update</param>
     /// <returns></returns>
     /// <exception cref="ControllException">Почему не обработано</exception>
-    public static ChatId GetChatId(Update update)
+    public static ChatId GetChatId(this Update update)
     {
         if (update.Message != default)
             return update.Message.Chat.Id;
@@ -30,7 +27,7 @@ public class TelegramHelper
     /// <param name="update">telegram update</param>
     /// <returns></returns>
     /// <exception cref="ControllException">Почему не обработано</exception>
-    public static User GetUser(Update update)
+    public static User GetUser(this Update update)
     {
         if (update.Message != default && update.Message.From != default)
             return update.Message.From;
@@ -39,10 +36,6 @@ public class TelegramHelper
         
         throw new ControllException($"Не смог определить пользователя телеграм.", false);
     }
-}
-
-public static class TelegramBotClientExtension {
-    
     /// <summary>
     /// Отправка стандартного сообщения от бота
     /// </summary>

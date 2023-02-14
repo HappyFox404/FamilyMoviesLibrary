@@ -1,10 +1,13 @@
-using FamilyMoviesLibrary.ApplicationCommands;
 using FamilyMoviesLibrary.BotCommands;
 using FamilyMoviesLibrary.Context;
 using FamilyMoviesLibrary.Helpers;
 using FamilyMoviesLibrary.Interfaces;
 using FamilyMoviesLibrary.Models.Exception;
+using FamilyMoviesLibrary.Models.Extension;
+using FamilyMoviesLibrary.Models.Settings;
 using FamilyMoviesLibrary.Services.Helpers;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Telegram.Bot;
 using Telegram.Bot.Exceptions;
 using Telegram.Bot.Types;
@@ -12,22 +15,29 @@ using Telegram.Bot.Types.Enums;
 
 namespace FamilyMoviesLibrary.Services;
 
-public class BotService
+public interface IBotService
+{
+    Task StartBot();
+}
+
+public class BotService : IBotService
 {
     private readonly TelegramBotClient _client;
-    public delegate void WaitAction();
-    private readonly WaitAction _waitingAction;
-
     private readonly IEnumerable<IBotCommand> _commands;
-
     private readonly IBotCommand _defaultCommand;
-    
-    public BotService(string token, WaitAction waitingAction)
+    private readonly ILogger<BotService> _logger;
+    private readonly FamilyMoviesLibraryContext _context;
+    private readonly IStorageService _storage;
+
+    public BotService(ILogger<BotService> logger, IOptions<TelegramSettings> telegramSettings, 
+        FamilyMoviesLibraryContext context, IStorageService storage)
     {
+        _logger = logger;
+        _context = context;
+        _storage = storage;
         _commands = SystemHelper.GetBotCommands();
         _defaultCommand = SystemHelper.GetBotDefaultCommand();
-        _waitingAction = waitingAction;
-        _client = new TelegramBotClient(token);
+        _client = new TelegramBotClient(telegramSettings.Value.Token);
     }
 
     public async Task StartBot()
@@ -44,10 +54,8 @@ public class BotService
             cancellationToken: cts.Token);
 
         await _client.GetMeAsync();
-        
-        _waitingAction?.Invoke();
-        
-        cts.Cancel();
+        _logger.LogInformation("Bot is started!");
+        Console.ReadKey();
     }
     
     async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
@@ -80,20 +88,16 @@ public class BotService
     private async Task ListenCommands(string sendCommand, Update update, CancellationToken cancellationToken)
     {
         string resultCommand = sendCommand;
-        //Кароче нужна обработка предыдущих сообщений
-        using (FamilyMoviesLibraryContext context =
-               FamilyMoviesLibraryContext.CreateContext(SettingsService.GetDefaultConnectionString()))
-        {
-            try
+        try
             {
-                User telegramUser = TelegramHelper.GetUser(update);
-                await context.CreateUser(telegramUser);
+                User telegramUser = update.GetUser();
+                await _context.CreateUser(telegramUser);
 
                 if (String.IsNullOrWhiteSpace(resultCommand) == false)
                 {
-                    if (await context.ContinueLastMessage(telegramUser.Id))
+                    if (await _context.ContinueLastMessage(telegramUser.Id))
                     {
-                        string prevCommand = await context.LastMessage(telegramUser.Id);
+                        string prevCommand = await _context.LastMessage(telegramUser.Id);
                         if (String.IsNullOrWhiteSpace(prevCommand) == false)
                         {
                             resultCommand = $"{prevCommand} \"{CommandBuilder.ContinueKey}{sendCommand}\"";
@@ -106,42 +110,41 @@ public class BotService
                         if (command.IsNeedCommand(resultCommand))
                         {
                             foundCommand = true;
-                            await command.ExecuteCommand(context, resultCommand, _client, update, cancellationToken);
+                            await command.ExecuteCommand(_context, resultCommand, _client, update, cancellationToken);
                             break;
                         }
                     }
 
                     if (!foundCommand)
                     {
-                        await _defaultCommand.ExecuteCommand(context, resultCommand, _client, update,
+                        await _defaultCommand.ExecuteCommand(_context, resultCommand, _client, update,
                             cancellationToken);
                     }
                 }
                 else
                 {
-                    await _defaultCommand?.ExecuteCommand(context, "", _client, update, cancellationToken)!;
+                    await _defaultCommand?.ExecuteCommand(_context, "", _client, update, cancellationToken)!;
                 }
             }
             catch (ControllException controll)
             {
                 if (controll.UserAnswer)
                 {
-                    User? user = TelegramHelper.GetUser(update);
-                    ChatId? chatId = TelegramHelper.GetChatId(update);
-                    await context.SetMessage(user.Id, "error");
+                    User user = update.GetUser();
+                    ChatId chatId = update.GetChatId();
+                    await _context.SetMessage(user.Id, "error");
                     await _client.SendDefaultMessage(
                         controll.Message,
                         chatId, cancellationToken);
                 }
                 else
                 {
-                    Console.WriteLine($"Во время обработки запроса, произошла контролируемая ошибка: {controll.Message}");
+                    _logger.LogError($"Во время обработки запроса, произошла контролируемая ошибка: {controll.Message}");
                 }
             }
             catch (Exception exception)
             {
-                Console.WriteLine($"Во время обработки запроса, произошла ошибка: {exception}");
+                _logger.LogError($"Во время обработки запроса, произошла ошибка: {exception}");
             }
-        }
     }
 }

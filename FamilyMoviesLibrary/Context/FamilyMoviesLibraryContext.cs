@@ -15,13 +15,6 @@ public class FamilyMoviesLibraryContext : DbContext
         Database.EnsureCreated();
     }
 
-    public static FamilyMoviesLibraryContext CreateContext(string connection)
-    {
-        DbContextOptionsBuilder<FamilyMoviesLibraryContext> options = new();
-        options.UseNpgsql(connection);
-        return new FamilyMoviesLibraryContext(options.Options);
-    }
-
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Group>().HasKey(x => x.Id);

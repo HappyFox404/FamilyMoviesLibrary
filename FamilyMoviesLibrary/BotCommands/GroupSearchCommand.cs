@@ -3,6 +3,7 @@ using FamilyMoviesLibrary.Interfaces;
 using FamilyMoviesLibrary.Models;
 using FamilyMoviesLibrary.Models.Atributes;
 using FamilyMoviesLibrary.Models.Exception;
+using FamilyMoviesLibrary.Models.Extension;
 using FamilyMoviesLibrary.Services.Helpers;
 using Microsoft.EntityFrameworkCore;
 using Telegram.Bot;
@@ -25,8 +26,8 @@ public class GroupSearchCommand : IBotCommand
         var buildCommand = new CommandBuilder(command);
         if (buildCommand.ValidCommand)
         {
-            ChatId chatId = TelegramHelper.GetChatId(update);
-            User user = TelegramHelper.GetUser(update);
+            User user = update.GetUser();
+            ChatId chatId = update.GetChatId();
             
             if (buildCommand.ContainsContinueKey() == false)
             {

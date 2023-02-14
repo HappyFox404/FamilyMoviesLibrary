@@ -3,6 +3,7 @@ using FamilyMoviesLibrary.Helpers;
 using FamilyMoviesLibrary.Interfaces;
 using FamilyMoviesLibrary.Models.Atributes;
 using FamilyMoviesLibrary.Models.Exception;
+using FamilyMoviesLibrary.Models.Extension;
 using FamilyMoviesLibrary.Services.Helpers;
 using Telegram.Bot;
 using Telegram.Bot.Types;
@@ -23,8 +24,8 @@ public class DefaultBotCommand : IBotCommand
     {
         if (update.Message != default || update.CallbackQuery != default)
         {
-            User user = TelegramHelper.GetUser(update);
-            ChatId chatId = TelegramHelper.GetChatId(update);
+            User user = update.GetUser();
+            ChatId chatId = update.GetChatId();
             
             InlineKeyboardMarkup inlineKeyboard = new(new[]
             {
