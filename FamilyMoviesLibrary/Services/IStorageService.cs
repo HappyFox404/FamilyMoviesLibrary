@@ -2,6 +2,7 @@ using System.Net;
 using FamilyMoviesLibrary.Context.Migrations;
 using FamilyMoviesLibrary.Models.Data;
 using FamilyMoviesLibrary.Models.Settings;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json.Linq;
 using RestSharp;
@@ -20,8 +21,10 @@ public class StorageService : IStorageService
     private List<CountriesKinopoiskUnofficalModel> _countries = new List<CountriesKinopoiskUnofficalModel>();
 
     private readonly KinpoiskUnofficalSettings _settings;
-    public StorageService(IOptions<KinpoiskUnofficalSettings> options)
+    private readonly ILogger<StorageService> _logger;
+    public StorageService(IOptions<KinpoiskUnofficalSettings> options, ILogger<StorageService> logger)
     {
+        _logger = logger;
         _settings = options.Value;
         LoadKinopoiskUnofficalFilterData();
     }
@@ -56,7 +59,7 @@ public class StorageService : IStorageService
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Error load genres: {ex}", ex.Message);
+                _logger.LogError("Error load genres: {ex}", ex.Message);
                 throw;
             }
         }

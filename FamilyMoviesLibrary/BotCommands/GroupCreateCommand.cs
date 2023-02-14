@@ -1,14 +1,14 @@
 using FamilyMoviesLibrary.Context;
+using FamilyMoviesLibrary.Context.ContextQuery;
 using FamilyMoviesLibrary.Context.Models;
-using FamilyMoviesLibrary.Helpers;
-using FamilyMoviesLibrary.Interfaces;
 using FamilyMoviesLibrary.Models;
 using FamilyMoviesLibrary.Models.Atributes;
 using FamilyMoviesLibrary.Models.Exception;
 using FamilyMoviesLibrary.Models.Extension;
 using FamilyMoviesLibrary.Services;
-using FamilyMoviesLibrary.Services.Helpers;
+using FamilyMoviesLibrary.Support;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.ReplyMarkups;
@@ -25,7 +25,8 @@ public class GroupCreateCommand : IBotCommand
         return new CommandBuilder(command).DefinationCommand(BotCommandNames.GroupCreate);
     }
 
-    public async Task ExecuteCommand(FamilyMoviesLibraryContext context, string command, TelegramBotClient client, Update update, CancellationToken cancellationToken)
+    public async Task ExecuteCommand(FamilyMoviesLibraryContext context, string command, TelegramBotClient client, Update update, 
+        IServiceProvider collection, CancellationToken cancellationToken)
     {
         var buildCommand = new CommandBuilder(command);
         if (buildCommand.ValidCommand)

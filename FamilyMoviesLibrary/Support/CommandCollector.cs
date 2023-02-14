@@ -1,10 +1,10 @@
 using System.Reflection;
-using FamilyMoviesLibrary.Interfaces;
+using FamilyMoviesLibrary.BotCommands;
 using FamilyMoviesLibrary.Models.Atributes;
 
-namespace FamilyMoviesLibrary.Helpers;
+namespace FamilyMoviesLibrary.Support;
 
-public static class SystemHelper
+public static class CommandCollector
 {
     public static List<IBotCommand> GetBotCommands()
     {

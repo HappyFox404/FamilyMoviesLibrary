@@ -1,10 +1,9 @@
 ﻿using FamilyMoviesLibrary.Context;
-using FamilyMoviesLibrary.Helpers;
-using FamilyMoviesLibrary.Interfaces;
+using FamilyMoviesLibrary.Context.ContextQuery;
 using FamilyMoviesLibrary.Models.Atributes;
 using FamilyMoviesLibrary.Models.Exception;
 using FamilyMoviesLibrary.Models.Extension;
-using FamilyMoviesLibrary.Services.Helpers;
+using Microsoft.Extensions.DependencyInjection;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
@@ -20,7 +19,7 @@ public class DefaultBotCommand : IBotCommand
         return true;
     }
 
-    public async Task ExecuteCommand(FamilyMoviesLibraryContext context, string command, TelegramBotClient client, Update update, CancellationToken cancellationToken)
+    public async Task ExecuteCommand(FamilyMoviesLibraryContext context, string command, TelegramBotClient client, Update update, IServiceProvider collection, CancellationToken cancellationToken)
     {
         if (update.Message != default || update.CallbackQuery != default)
         {

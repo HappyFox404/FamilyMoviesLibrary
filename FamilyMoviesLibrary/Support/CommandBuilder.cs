@@ -1,4 +1,4 @@
-﻿namespace FamilyMoviesLibrary.Services.Helpers;
+﻿namespace FamilyMoviesLibrary.Support;
 
 public class CommandBuilder
 {

@@ -1,11 +1,11 @@
 using FamilyMoviesLibrary.BotCommands;
 using FamilyMoviesLibrary.Context;
-using FamilyMoviesLibrary.Helpers;
-using FamilyMoviesLibrary.Interfaces;
+using FamilyMoviesLibrary.Context.ContextQuery;
 using FamilyMoviesLibrary.Models.Exception;
 using FamilyMoviesLibrary.Models.Extension;
 using FamilyMoviesLibrary.Models.Settings;
-using FamilyMoviesLibrary.Services.Helpers;
+using FamilyMoviesLibrary.Support;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Telegram.Bot;
@@ -28,15 +28,17 @@ public class BotService : IBotService
     private readonly ILogger<BotService> _logger;
     private readonly FamilyMoviesLibraryContext _context;
     private readonly IStorageService _storage;
+    private readonly IServiceProvider _services;
 
     public BotService(ILogger<BotService> logger, IOptions<TelegramSettings> telegramSettings, 
-        FamilyMoviesLibraryContext context, IStorageService storage)
+        FamilyMoviesLibraryContext context, IStorageService storage, IServiceProvider services)
     {
         _logger = logger;
         _context = context;
-        _storage = storage;
-        _commands = SystemHelper.GetBotCommands();
-        _defaultCommand = SystemHelper.GetBotDefaultCommand();
+        _storage = storage; //Инициализация хранилища
+        _services = services;
+        _commands = CommandCollector.GetBotCommands();
+        _defaultCommand = CommandCollector.GetBotDefaultCommand();
         _client = new TelegramBotClient(telegramSettings.Value.Token);
     }
 
@@ -81,7 +83,7 @@ public class BotService : IBotService
             _ => exception.ToString()
         };
 
-        Console.WriteLine(ErrorMessage);
+        _logger.LogError("Handle error bot: {error}", ErrorMessage);
         return Task.CompletedTask;
     }
     
@@ -110,20 +112,20 @@ public class BotService : IBotService
                         if (command.IsNeedCommand(resultCommand))
                         {
                             foundCommand = true;
-                            await command.ExecuteCommand(_context, resultCommand, _client, update, cancellationToken);
+                            await command.ExecuteCommand(_context, resultCommand, _client, update, _services, cancellationToken);
                             break;
                         }
                     }
 
                     if (!foundCommand)
                     {
-                        await _defaultCommand.ExecuteCommand(_context, resultCommand, _client, update,
+                        await _defaultCommand.ExecuteCommand(_context, resultCommand, _client, update, _services,
                             cancellationToken);
                     }
                 }
                 else
                 {
-                    await _defaultCommand?.ExecuteCommand(_context, "", _client, update, cancellationToken)!;
+                    await _defaultCommand?.ExecuteCommand(_context, "", _client, update, _services, cancellationToken)!;
                 }
             }
             catch (ControllException controll)
