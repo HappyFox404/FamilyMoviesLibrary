@@ -29,6 +29,8 @@ public class BotService : IBotService
     private readonly FamilyMoviesLibraryContext _context;
     private readonly IStorageService _storage;
     private readonly IServiceProvider _services;
+    
+    private bool _isRun = true;
 
     public BotService(ILogger<BotService> logger, IOptions<TelegramSettings> telegramSettings, 
         FamilyMoviesLibraryContext context, IStorageService storage, IServiceProvider services)
@@ -57,7 +59,7 @@ public class BotService : IBotService
 
         await _client.GetMeAsync();
         _logger.LogInformation("Bot is started!");
-        Console.ReadKey();
+        while (_isRun) {}
     }
     
     async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
@@ -84,6 +86,7 @@ public class BotService : IBotService
         };
 
         _logger.LogError("Handle error bot: {error}", ErrorMessage);
+        _isRun = false;
         return Task.CompletedTask;
     }
     
