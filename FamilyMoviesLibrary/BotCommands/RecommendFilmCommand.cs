@@ -67,9 +67,6 @@ public class RecommendFilmCommand : IBotCommand
                     .FirstOrDefault(x => x.Genre.ToLower().Contains(continueArgument.ToLower()));
                 if (needGenre != default)
                 {
-                    List<long> viewedFilms = await context.Films.Where(x => x.GroupId == needUser.GroupId && x.GenreId == needGenre.Id)
-                        .Select(x => x.KinopoiskId).ToListAsync();
-                    
                     int maxPageSearch = 20;
                     List<int> viewedPages = new List<int>();
                     Random rnd = new Random();
@@ -81,6 +78,8 @@ public class RecommendFilmCommand : IBotCommand
                         
                         if (requestedFilm.Any())
                         {
+                            List<long> viewedFilms = await context.Films.Where(x => x.GroupId == needUser.GroupId && x.GenreId == needGenre.Id)
+                                .Select(x => x.KinopoiskId).ToListAsync();
                             var notViewedFilms = requestedFilm
                                 .Where(x => viewedFilms.Contains(x.KinopoiskId) == false).ToList();
                             
